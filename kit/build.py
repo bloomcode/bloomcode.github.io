@@ -50,6 +50,11 @@ FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800'
          '&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">\n')
 BASE = (KIT / "web/base.css").read_text()
+# The logo, copied to the site root; every page links the favicon and touch icon from there.
+ICONS = KIT / "web/icons"
+ICON_LINKS = ('<link rel="icon" href="/favicon.ico" sizes="any">\n'
+              '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">\n'
+              '<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n')
 
 
 def read(rel):
@@ -63,7 +68,7 @@ def document(fragment, description=""):
     meta = f'<meta name="description" content="{html.escape(description)}">\n' if description else ""
     return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
-            f"{meta}{head.strip()}\n<style>[hidden]{{display:none!important}}img{{max-width:100%}}</style>\n"
+            f"{meta}{ICON_LINKS}{head.strip()}\n<style>[hidden]{{display:none!important}}img{{max-width:100%}}</style>\n"
             f"</head>\n<body>\n{body.strip()}\n</body>\n</html>\n")
 
 
@@ -126,7 +131,7 @@ SHELL_CSS = """
 .site-top { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
 .site-top a { color: inherit; text-decoration: none; }
 .site-brand { display: flex; align-items: center; gap: 10px; font: 800 18px var(--display); }
-.site-brand .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; background: var(--pen); color: var(--pen-ink); font: 800 13px var(--display); }
+.site-brand .brand-mark { width: 36px; height: 36px; background: none; border-radius: 0; box-shadow: none; padding: 0; }
 .site-nav { display: flex; gap: 14px; font: 600 13.5px var(--body); flex-wrap: wrap; }
 .site-nav a:hover { color: var(--pen); }
 .hero-site h1 { font: 800 clamp(30px, 5vw, 48px)/1.05 var(--display); letter-spacing: -0.01em; margin: 8px 0 12px; }
@@ -169,7 +174,7 @@ def shell(title, description, body, depth):
     up = "../" * depth
     frag = (f"<title>{html.escape(title)}</title>\n{FONTS}<style>\n{BASE}\n{SHELL_CSS}\n</style>\n"
             f'<header class="site-top" style="max-width:1080px;margin:0 auto;padding:18px 16px 0">'
-            f'<a class="site-brand" href="{up or "./"}"><span class="brand-mark">BC</span>BloomCode</a>'
+            f'<a class="site-brand" href="{up or "./"}"><img class="brand-mark" src="/icon-192.png" alt="" width="36" height="36">BloomCode</a>'
             f'<nav class="site-nav"><a href="{up}dsa/">DSA</a><a href="{up}cp/">Competitive programming</a>'
             f'<a href="https://github.com/bloomcode">GitHub</a></nav></header>\n'
             f'<main class="site">{body}<p class="foot">Original exercises, solutions and guides. '
@@ -311,6 +316,8 @@ def main():
     (out / "404.html").write_text(shell("Not found · BloomCode", "", '<section class="panel hero-site"><h1>Not <em>found</em></h1>'
                                         '<p>That page does not exist. Start from the <a href="/">home page</a>.</p></section>', 0))
     (out / ".nojekyll").write_text("")
+    for icon in ICONS.iterdir():
+        (out / icon.name).write_bytes(icon.read_bytes())
     pages = sorted(p.relative_to(out).as_posix() for p in out.rglob("*.html"))
     print(f"built {len(pages)} pages into {out}")
 
