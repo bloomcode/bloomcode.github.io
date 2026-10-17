@@ -1,0 +1,236 @@
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/*BASE_CSS*/
+/* Answer key writes in red pen. */
+:root { --pen: #c0283b; --pen-ink: #ffffff; --pen-soft: rgba(192, 40, 59, 0.10); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pen: #ff7d8a; --pen-ink: #2a0b10; --pen-soft: rgba(255, 125, 138, 0.14); } }
+:root[data-theme="dark"] { --pen: #ff7d8a; --pen-ink: #2a0b10; --pen-soft: rgba(255, 125, 138, 0.14); }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px 36px; align-items: center; }
+.hero h1 { font: 800 clamp(30px, 4.6vw, 46px)/1 var(--display); font-stretch: 118%; letter-spacing: -0.01em; }
+.hero h1 em { font-style: normal; color: var(--pen); }
+.hero p { color: var(--ink-2); max-width: 58ch; margin: 12px 0 0; }
+.hero-stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 16px; font: 500 13px var(--mono); color: var(--ink-2); }
+.hero-stats b { font: 800 22px/1 var(--display); font-stretch: 112%; color: var(--ink); margin-right: 6px; font-variant-numeric: tabular-nums; }
+.ladder { display: grid; gap: 8px; }
+.ladder-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) 48px; align-items: center; gap: 10px; font-size: 13px; }
+.ladder-bar { height: 14px; border-radius: 4px; transform-origin: left; animation: grow 0.9s cubic-bezier(.2,.8,.2,1) both; }
+.ladder-row:nth-child(2) .ladder-bar { animation-delay: .06s } .ladder-row:nth-child(3) .ladder-bar { animation-delay: .12s }
+.ladder-row:nth-child(4) .ladder-bar { animation-delay: .18s } .ladder-row:nth-child(5) .ladder-bar { animation-delay: .24s }
+.ladder-row:nth-child(6) .ladder-bar { animation-delay: .30s }
+@keyframes grow { from { transform: scaleX(0.04); } to { transform: scaleX(1); } }
+.ladder-n { font: 600 12px var(--mono); color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+.ladder-cap { font: 500 12px var(--mono); color: var(--ink-3); margin-top: 4px; }
+
+.card { grid-template-columns: minmax(0, 1fr); }
+.card .prompt { color: var(--ink-2); font-size: 14px; }
+.bigo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sol { margin-top: 10px; border-radius: 9px; overflow: hidden; border: 1px solid var(--rule); background: var(--code-bg); min-width: 0; }
+.sol-bar { display: flex; align-items: center; gap: 8px; padding: 7px 10px 7px 14px; background: color-mix(in srgb, var(--code-bg) 82%, #ffffff); }
+.sol-label { font: 600 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--code-com); margin-right: auto; }
+.sol-btn {
+  height: 28px; padding: 0 11px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.16); background: transparent;
+  color: var(--code-ink); font: 500 12.5px var(--body); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.sol-btn:hover { background: rgba(255,255,255,0.08); }
+.sol-body { position: relative; }
+.sol pre { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13px/1.6 var(--mono); color: var(--code-ink); tab-size: 4; transition: filter 0.25s; }
+.sol.locked pre { filter: blur(7px); user-select: none; pointer-events: none; }
+.reveal {
+  position: absolute; inset: 0; display: grid; place-items: center; background: transparent; border: 0; cursor: pointer;
+}
+.reveal span {
+  background: var(--pen); color: var(--pen-ink); font: 600 14px var(--body); padding: 10px 18px; border-radius: 999px;
+  box-shadow: 0 8px 22px -8px rgba(0,0,0,0.6); display: inline-flex; gap: 8px; align-items: center;
+}
+.reveal:hover span { transform: translateY(-1px); }
+.sol:not(.locked) .reveal { display: none; }
+.hljs-keyword, .hljs-built_in.hljs-keyword { color: var(--code-kw); }
+.hljs-string { color: var(--code-str); } .hljs-number, .hljs-literal { color: var(--code-num); }
+.hljs-comment { color: var(--code-com); font-style: italic; }
+.hljs-title.function_ { color: var(--code-fn); } .hljs-title.class_, .hljs-title { color: var(--code-cls); }
+.hljs-built_in { color: var(--code-bi); } .hljs-meta { color: var(--code-com); } .hljs-subst { color: var(--code-ink); }
+.facts { margin-top: 10px; display: grid; gap: 8px; }
+.fact { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; font-size: 14px; }
+.fact > b { font: 600 11px/1.9 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.fact.warn > b { color: var(--pen); }
+.card-links { display: flex; gap: 14px; margin-top: 6px; font-size: 13px; }
+.card-links a { text-decoration: none; } .card-links a:hover { text-decoration: underline; }
+.top .wb-link { font: 600 13px var(--body); text-decoration: none; color: var(--ink); border: 1px solid var(--rule); border-radius: 999px; padding: 7px 13px; background: var(--sheet); }
+.top .wb-link:hover { border-color: var(--pen); }
+@media (max-width: 760px) { .hero { grid-template-columns: minmax(0, 1fr); } .fact { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark">KEY</span>
+      <span><span class="brand-name">Answer Key</span><br><span class="brand-sub">DSA in {{LANG_NAME}}</span></span>
+    </a>
+    <label class="search" for="q">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search solutions: binary, trie, 14.6…" autocomplete="off">
+    </label>
+    <div class="chips" role="group" aria-label="Filter by level">
+      <button class="chip" data-level="Core" aria-pressed="false"><span class="dot" style="background:var(--core)"></span>Core</button>
+      <button class="chip" data-level="Practice" aria-pressed="false"><span class="dot" style="background:var(--practice)"></span>Practice</button>
+      <button class="chip" data-level="Stretch" aria-pressed="false"><span class="dot" style="background:var(--stretch)"></span>Stretch</button>
+      <button class="chip" id="revealAll" aria-pressed="false">Show all solutions</button>
+    </div>
+    <a class="wb-link" id="wbLink" href="#" target="_blank" rel="noopener">Workbook ↗</a>
+  </div>
+</header>
+
+<div class="shell" id="top">
+  <nav class="rail" id="rail" aria-label="Chapters"></nav>
+  <main>
+    <section class="panel hero">
+      <div>
+        <div class="eyebrow">Worked solutions · red pen</div>
+        <h1>Check your work, <em>one reveal</em> at a time.</h1>
+        <p>{{KEY_INTRO}}</p>
+        <div class="hero-stats"><span><b id="solCount">0</b>solutions</span><span><b id="chCount">0</b>chapters</span><span><b id="revealedCount">0</b>revealed</span></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:10px">How the Big O tags read · steps for N = 16</div>
+        <div class="ladder" id="ladder"></div>
+        <div class="ladder-cap">Bars use a log scale so all six fit; O(2^N) is 65,536 steps.</div>
+      </div>
+    </section>
+    <div id="chapters"></div>
+    <div class="empty" id="empty" hidden>No solutions match. Clear the search or the level filter.</div>
+  </main>
+</div>
+
+<script type="application/json" id="data">/*DATA_JSON*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+/*COMMON_JS*/
+const WORKBOOK_URL = "/*WORKBOOK_URL*/";
+const LANG_NAME = { python: "Python", java: "Java", go: "Go" }[DATA.lang];
+$("#solCount").textContent = DATA.exercises.length;
+$("#chCount").textContent = DATA.chapters.length;
+$("#q").placeholder = `Search ${DATA.exercises.length} solutions: binary, trie, 14.6…`;
+const revealed = new Set();
+const levels = new Set();
+let showAll = false;
+try { (JSON.parse(localStorage.getItem("/*STORE_KEY*/.revealed") || "[]")).forEach(id => revealed.add(id)); } catch {}
+const remember = () => { try { localStorage.setItem("/*STORE_KEY*/.revealed", JSON.stringify([...revealed])); } catch {} };
+
+if (WORKBOOK_URL) $("#wbLink").href = WORKBOOK_URL; else $("#wbLink").hidden = true;
+
+// Complexity ladder legend
+const N = 16;
+const LADDER = [["o1", "O(1)", 1], ["ologn", "O(log N)", 4], ["on", "O(N)", 16], ["onlogn", "O(N log N)", 64], ["on2", "O(N^2)", 256], ["oexp", "O(2^N)", 65536]];
+$("#ladder").innerHTML = LADDER.map(([c, label, steps]) => {
+  const pct = 8 + 92 * Math.log2(steps) / Math.log2(65536);
+  return `<div class="ladder-row"><span class="cx ${c}" style="justify-self:start">${label}</span><span><span class="ladder-bar" style="display:block;width:${pct}%;background:var(--${c})"></span></span><span class="ladder-n">${steps.toLocaleString()}</span></div>`;
+}).join("");
+
+function cardHTML(e) {
+  const isOpen = showAll || revealed.has(e.id);
+  const wb = WORKBOOK_URL ? `<a href="${WORKBOOK_URL}#${slug(e.id)}" target="_blank" rel="noopener">See it in the workbook ↗</a>` : "";
+  return `<article class="card" id="${slug(e.id)}" data-id="${e.id}" data-level="${e.level}">
+    <div class="card-top"><span class="card-id">${e.id}</span><span class="card-title">${esc(e.title)}</span><span class="level ${e.level}">${e.level}</span><span class="card-spacer"></span><span class="bigo-chips">${cxChips(e.bigo)}</span></div>
+    <p class="prompt">${rich(e.prompt)}</p>
+    <div class="sol ${isOpen ? "" : "locked"}">
+      <div class="sol-bar"><span class="sol-label">Solution · ${LANG_NAME}</span>
+        <button class="sol-btn" data-act="copy" type="button">Copy</button>
+        <button class="sol-btn" data-act="hide" type="button">${isOpen ? "Hide" : "Reveal"}</button></div>
+      <div class="sol-body"><pre><code class="language-${DATA.lang}">${esc(e.code)}</code></pre>
+        <button class="reveal" data-act="reveal" type="button" aria-label="Reveal solution ${e.id}"><span>Reveal solution</span></button></div>
+    </div>
+    <div class="facts"><div class="fact"><b>Big O</b><div>${rich(e.bigo)}</div></div>
+      ${e.note ? `<div class="fact warn"><b>Watch out</b><div class="note">${rich(e.note)}</div></div>` : ""}</div>
+    <div class="card-links">${wb}</div>
+  </article>`;
+}
+
+function render() {
+  $("#chapters").innerHTML = DATA.chapters.map(c => {
+    const items = DATA.exercises.filter(e => e.ch === c.ch);
+    return `<section class="chapter" id="ch-${c.ch}" data-ch="${c.ch}">
+      <header class="chapter-head"><span class="chapter-num">${String(c.ch).padStart(2, "0")}</span>
+        <h2 class="chapter-title">${esc(c.title)}</h2>
+        <div class="chapter-meta"><button class="file-chip" data-file="${c.file}" type="button" title="Copy file name">${c.file}</button><span class="ch-progress">${items.length} solutions</span></div>
+        <p class="chapter-focus" style="margin:0">${esc(c.focus)}</p></header>
+      <div class="cards">${items.map(cardHTML).join("")}</div></section>`;
+  }).join("");
+  if (window.hljs) $$("pre code").forEach(el => hljs.highlightElement(el));
+  $("#revealedCount").textContent = showAll ? DATA.exercises.length : revealed.size;
+  applyFilter();
+}
+
+function setOpen(card, open) {
+  const sol = $(".sol", card);
+  sol.classList.toggle("locked", !open);
+  $('[data-act="hide"]', card).textContent = open ? "Hide" : "Reveal";
+  if (open) revealed.add(card.dataset.id); else revealed.delete(card.dataset.id);
+  remember();
+  $("#revealedCount").textContent = revealed.size;
+}
+
+document.addEventListener("click", ev => {
+  const btn = ev.target.closest("[data-act], .file-chip");
+  if (!btn) return;
+  const card = btn.closest(".card");
+  if (btn.classList.contains("file-chip")) return copyText(btn.dataset.file, btn);
+  if (btn.dataset.act === "reveal") setOpen(card, true);
+  if (btn.dataset.act === "hide") setOpen(card, $(".sol", card).classList.contains("locked"));
+  if (btn.dataset.act === "copy") {
+    const e = DATA.exercises.find(x => x.id === card.dataset.id);
+    copyText(e.code, $("pre", card));
+  }
+});
+
+function applyFilter() {
+  const q = $("#q").value.trim().toLowerCase();
+  let shown = 0;
+  $$(".chapter").forEach(sec => {
+    let any = 0;
+    $$(".card", sec).forEach(card => {
+      const e = DATA.exercises.find(x => x.id === card.dataset.id);
+      const hay = (e.id + " " + e.title + " " + e.prompt + " " + e.code + " " + e.bigo).toLowerCase();
+      const ok = (!levels.size || levels.has(e.level)) && (!q || hay.includes(q) || e.id === q);
+      card.hidden = !ok; if (ok) any++;
+    });
+    sec.hidden = !any; shown += any;
+  });
+  $("#empty").hidden = shown > 0;
+}
+$("#q").addEventListener("input", applyFilter);
+$$(".chip[data-level]").forEach(ch => ch.addEventListener("click", () => {
+  const on = ch.getAttribute("aria-pressed") !== "true";
+  ch.setAttribute("aria-pressed", on); on ? levels.add(ch.dataset.level) : levels.delete(ch.dataset.level);
+  applyFilter();
+}));
+$("#revealAll").addEventListener("click", ev => {
+  showAll = ev.currentTarget.getAttribute("aria-pressed") !== "true";
+  ev.currentTarget.setAttribute("aria-pressed", showAll);
+  $$(".card").forEach(card => {
+    const open = showAll || revealed.has(card.dataset.id);
+    $(".sol", card).classList.toggle("locked", !open);
+    $('[data-act="hide"]', card).textContent = open ? "Hide" : "Reveal";
+  });
+  $("#revealedCount").textContent = showAll ? DATA.exercises.length : revealed.size;
+});
+
+function openHash() {
+  const id = location.hash.slice(1);
+  if (!id.startsWith("ex-")) return;
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.hidden = false; card.closest(".chapter").hidden = false;
+  card.scrollIntoView({ block: "start" });
+  card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+}
+addEventListener("hashchange", openHash);
+
+render();
+buildRail($("#rail"), ch => DATA.exercises.filter(e => e.ch === ch).length);
+syncHeaderHeight();
+openHash();
+</script>

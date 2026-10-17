@@ -1,0 +1,65 @@
+name: pages
+
+# Builds the site from the six solutions repos, checks it in a browser and deploys it.
+# Runs on every push to main, by hand, and daily so merged exercise changes reach the site.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out the solutions repos
+        run: |
+          for repo in dsa-python dsa-java dsa-go cp-python cp-java cp-go; do
+            git clone --depth 1 "https://github.com/${{ github.repository_owner }}/$repo-solutions.git" "src/$repo-solutions"
+          done
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build
+        run: python kit/build.py --src src --out _site
+      - name: Install the browser
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Render check at 1280 px light and 390 px dark
+        run: python kit/render_check.py _site --shots shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: shots
+          retention-days: 7
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

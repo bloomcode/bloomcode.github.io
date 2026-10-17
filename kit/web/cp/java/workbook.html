@@ -1,0 +1,469 @@
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/*BASE_CSS*/
+/* This workbook writes in violet pen. */
+:root { --pen: #6236c9; --pen-ink: #ffffff; --pen-soft: rgba(98, 54, 201, 0.10); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pen: #b49bff; --pen-ink: #1a0f38; --pen-soft: rgba(180, 155, 255, 0.15); } }
+:root[data-theme="dark"] { --pen: #b49bff; --pen-ink: #1a0f38; --pen-soft: rgba(180, 155, 255, 0.15); }
+
+.meter { display: flex; align-items: center; gap: 10px; }
+.meter svg { width: 40px; height: 40px; transform: rotate(-90deg); }
+.meter circle { fill: none; stroke-width: 5; }
+.meter .track { stroke: var(--grid); }
+.meter .fill { stroke: var(--pen); stroke-linecap: round; transition: stroke-dashoffset 0.5s cubic-bezier(.2,.8,.2,1); }
+.meter-num { font: 800 17px/1 var(--display); font-stretch: 112%; font-variant-numeric: tabular-nums; }
+.meter-sub { font: 500 11px/1.3 var(--mono); color: var(--ink-3); }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: 24px 36px; align-items: center; }
+.hero h1 { font: 800 clamp(30px, 4.6vw, 48px)/1 var(--display); font-stretch: 118%; letter-spacing: -0.01em; }
+.hero h1 em { font-style: normal; color: var(--pen); }
+.hero p { color: var(--ink-2); max-width: 56ch; margin: 12px 0 0; }
+.levels-row { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; font: 500 13px var(--mono); color: var(--ink-2); }
+.levels-row b { font: 800 22px/1 var(--display); font-stretch: 112%; color: var(--ink); margin-right: 6px; font-variant-numeric: tabular-nums; }
+.sync { margin-top: 14px; font: 500 12px var(--mono); color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); display: inline-block; }
+.sync.account i { background: var(--o1); }
+
+/* Array playground */
+.play { background: var(--sheet-2); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; min-width: 0; }
+.play-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.play-title { font: 700 16px var(--display); font-stretch: 108%; margin-right: auto; }
+.steps-badge { font: 700 13px var(--mono); color: var(--pen); font-variant-numeric: tabular-nums; }
+.slots { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; margin: 14px 0 6px; }
+.slot {
+  aspect-ratio: 1 / 1.05; max-width: 100%; border-radius: 8px; display: grid; place-items: center; position: relative;
+  background: var(--sheet); border: 1.5px solid var(--ink); font: 700 clamp(13px, 2.2vw, 18px) var(--mono); color: var(--ink);
+  transition: background 0.15s, transform 0.15s, border-color 0.15s;
+}
+.slot.free { border-style: dashed; border-color: var(--rule); color: transparent; }
+.slot small { position: absolute; bottom: -18px; font: 500 10.5px var(--mono); color: var(--ink-3); }
+.slot.read { background: var(--o1); color: #fff; border-color: var(--o1); }
+.slot.cmp { background: var(--on); color: #22190a; border-color: var(--on); }
+.slot.shift { background: var(--pen); color: var(--pen-ink); border-color: var(--pen); transform: translateY(-4px); }
+.slot.write { background: var(--on2); color: #fff; border-color: var(--on2); transform: scale(1.06); }
+.ops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 26px; }
+.op {
+  height: 36px; border-radius: 8px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink);
+  font: 500 13px var(--body); cursor: pointer; transition: border-color .15s, background .15s;
+}
+.op:hover:not(:disabled) { border-color: var(--pen); background: var(--pen-soft); }
+.op:disabled { opacity: 0.45; cursor: not-allowed; }
+.op-out { margin-top: 12px; min-height: 44px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.op-out strong { color: var(--ink); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 11px var(--mono); color: var(--ink-3); margin-top: 6px; }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+
+/* Overflow lab */
+.expr { font: 700 15px var(--mono); color: var(--pen); background: var(--pen-soft); padding: 3px 9px; border-radius: 6px; overflow-wrap: anywhere; }
+.lab-controls { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr); gap: 8px; margin-top: 14px; }
+.lab-controls label { display: grid; gap: 4px; font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); min-width: 0; }
+.lab-controls select, .lab-controls input { height: 36px; width: 100%; min-width: 0; border-radius: 8px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); font: 600 14px var(--mono); padding: 0 8px; }
+.lab-controls input:focus, .lab-controls select:focus { outline: 2px solid var(--pen); outline-offset: 1px; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.presets button { height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); font: 600 12px var(--mono); cursor: pointer; }
+.presets button:hover { border-color: var(--pen); background: var(--pen-soft); }
+.verdict { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; margin: 14px 0 0; font-size: 13.5px; align-items: baseline; }
+.verdict dt { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.verdict dd { margin: 0; font: 700 14px var(--mono); color: var(--ink); overflow-wrap: anywhere; min-width: 0; }
+.badge { display: inline-block; font: 800 11px/1 var(--display); font-stretch: 120%; letter-spacing: 0.12em; padding: 5px 8px; border-radius: 4px; }
+.badge.ok { background: var(--o1); color: #fff; }
+.badge.bad { background: var(--on2); color: #fff; }
+.badge.info { background: var(--grid); color: var(--ink-2); }
+.why { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); min-height: 40px; }
+.bits { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px; margin-top: 14px; }
+.bit { aspect-ratio: 1 / 1.25; max-width: 100%; border-radius: 4px; display: grid; place-items: center; font: 700 clamp(9px, 1.6vw, 12px) var(--mono);
+  background: var(--sheet); border: 1px solid var(--rule); color: var(--ink-3); transition: background .15s, color .15s; }
+.bit.one { background: var(--pen); border-color: var(--pen); color: var(--pen-ink); }
+.bit.sign { box-shadow: inset 0 0 0 2px var(--on2); }
+.bit.sign.one { background: var(--on2); border-color: var(--on2); color: #fff; box-shadow: none; }
+.bits-cap { display: flex; justify-content: space-between; gap: 10px; font: 500 10.5px var(--mono); color: var(--ink-3); margin-top: 4px; }
+
+/* Cost heatmap */
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 14px; }
+.sec-head h2 { font: 800 22px/1.15 var(--display); font-stretch: 112%; margin-right: auto; }
+.sec-head p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.heat-wrap { overflow-x: auto; }
+.heat { width: 100%; border-collapse: separate; border-spacing: 5px; min-width: 620px; }
+.heat th { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 0 6px 2px; }
+.heat td.name { font: 600 14px var(--body); padding-right: 10px; white-space: nowrap; }
+.heat td.name a { color: var(--ink); text-decoration: none; }
+.heat td.name a:hover { color: var(--pen); }
+.heat td.name small { display: block; font: 500 11px var(--mono); color: var(--ink-3); }
+.tile { border-radius: 7px; padding: 7px 9px; color: #fff; min-height: 46px; }
+.tile b { font: 700 13px var(--mono); display: block; }
+.tile span { font-size: 11.5px; opacity: 0.9; line-height: 1.3; display: block; }
+.tile.on { color: #22190a; }
+.tile.na { background: transparent; border: 1px dashed var(--rule); color: var(--ink-3); }
+.tile.o1 { background: var(--o1); } .tile.ologn { background: var(--ologn); } .tile.on { background: var(--on); }
+.tile.onlogn { background: var(--onlogn); } .tile.on2 { background: var(--on2); }
+
+/* Roadmap */
+.road { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; counter-reset: part; position: relative; }
+.road li { min-width: 0; }
+.road a {
+  display: grid; gap: 6px; height: 100%; text-decoration: none; color: var(--ink); background: var(--sheet-2);
+  border: 1px solid var(--rule); border-radius: 10px; padding: 12px; position: relative; transition: border-color .15s, transform .15s;
+}
+.road a:hover { border-color: var(--pen); transform: translateY(-2px); }
+.road .pn { font: 800 26px/1 var(--display); font-stretch: 125%; color: var(--pen); }
+.road .pname { font: 600 13.5px/1.3 var(--body); }
+.road .pchs { font: 500 11.5px var(--mono); color: var(--ink-3); }
+.road .pbar { height: 5px; background: var(--grid); border-radius: 5px; overflow: hidden; margin-top: auto; }
+.road .pbar i { display: block; height: 100%; width: 0; background: var(--pen); transition: width .4s; }
+.road .pcount { font: 600 11.5px var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.road li:not(:last-child) a::after {
+  content: ""; position: absolute; right: -11px; top: 24px; width: 12px; height: 2px; background: var(--rule);
+}
+
+/* Exercise cards with a tick */
+.tick {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--rule); background: var(--sheet);
+  display: grid; place-items: center; cursor: pointer; margin-top: 1px; transition: background .15s, border-color .15s, transform .15s;
+}
+.tick:hover { border-color: var(--pen); }
+.tick svg { width: 14px; height: 14px; stroke: var(--pen-ink); stroke-width: 3; fill: none; opacity: 0; }
+.card.done .tick { background: var(--pen); border-color: var(--pen); transform: scale(1.04); }
+.card.done .tick svg { opacity: 1; }
+.card.done { background: var(--sheet-2); }
+.card.done .card-title { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--pen); text-decoration-thickness: 2px; }
+.card.done .prompt, .card.done .example { opacity: 0.7; }
+.sol-link { font: 600 12.5px var(--body); text-decoration: none; color: var(--pen); border: 1px solid var(--pen-soft); background: var(--pen-soft); padding: 4px 10px; border-radius: 999px; }
+.sol-link:hover { border-color: var(--pen); }
+.stamp {
+  font: 800 11px/1 var(--display); font-stretch: 125%; letter-spacing: 0.14em; color: var(--pen); border: 2px solid var(--pen);
+  padding: 5px 8px; border-radius: 4px; transform: rotate(-4deg); display: inline-block;
+}
+.chapter-meta .stamp { animation: stampin .35s cubic-bezier(.2,1.6,.4,1); }
+@keyframes stampin { from { transform: rotate(-4deg) scale(1.6); opacity: 0; } to { transform: rotate(-4deg) scale(1); opacity: 1; } }
+
+@media (max-width: 1000px) { .road { grid-template-columns: repeat(2, minmax(0, 1fr)); } .road li a::after { display: none; } }
+@media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .lab-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ops { grid-template-columns: repeat(2, minmax(0, 1fr)); } .meter-sub { display: none; } }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark">JV</span>
+      <span><span class="brand-name">Java Prep</span><br><span class="brand-sub">Workbook for competitive programming</span></span>
+    </a>
+    <label class="search" for="q">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search exercises: TreeMap, sieve, 5.4…" autocomplete="off">
+    </label>
+    <div class="chips" role="group" aria-label="Filter exercises">
+      <button class="chip" data-level="Core" aria-pressed="false"><span class="dot" style="background:var(--core)"></span>Core</button>
+      <button class="chip" data-level="Practice" aria-pressed="false"><span class="dot" style="background:var(--practice)"></span>Practice</button>
+      <button class="chip" data-level="Stretch" aria-pressed="false"><span class="dot" style="background:var(--stretch)"></span>Stretch</button>
+      <button class="chip" id="hideDone" aria-pressed="false">Hide done</button>
+    </div>
+    <div class="meter" aria-live="polite">
+      <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="fill" id="ring" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1"/></svg>
+      <div><div class="meter-num" id="doneNum">0</div><div class="meter-sub" id="donePct">0% done</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="shell" id="top">
+  <nav class="rail" id="rail" aria-label="Chapters"></nav>
+  <main>
+    <section class="panel hero">
+      <div>
+        <div class="eyebrow" id="eyebrow">Java 21 · violet pen</div>
+        <h1>The Java a contest <em>actually uses.</em></h1>
+        <p>Sixteen chapters of the language features, collections and habits that competitive Java depends on, from a fast reader and one flushed <code class="mono">PrintWriter</code> to <code class="mono">long</code> overflow, comparators and <code class="mono">TreeMap</code>. Solve each one, check it against the key, then tick it off.</p>
+        <div class="levels-row" id="levelsRow"></div>
+        <div class="sync" id="sync"><i></i><span>Ticks are saved in this browser</span></div>
+      </div>
+      <div class="play" id="play">
+        <div class="play-head"><span class="play-title">Overflow lab</span><code class="expr" id="expr">a * b</code></div>
+        <div class="lab-controls">
+          <label for="lType">type<select id="lType"><option value="int">int</option><option value="long">long</option></select></label>
+          <label for="lA">a<input id="lA" inputmode="numeric" autocomplete="off" spellcheck="false"></label>
+          <label for="lOp">operation<select id="lOp"></select></label>
+          <label for="lB">b<input id="lB" inputmode="numeric" autocomplete="off" spellcheck="false"></label>
+        </div>
+        <div class="presets" id="presets"></div>
+        <dl class="verdict" id="verdict"></dl>
+        <p class="why" id="why"></p>
+        <div class="bits" id="bits" aria-hidden="true"></div>
+        <div class="bits-cap"><span id="bitsL">bit 31 (sign)</span><span>bit 0</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="sec-head"><h2>What Java collections cost</h2><p>Typical cost for the JDK classes contests use. Click a type to jump to its chapter.</p></div>
+      <div class="heat-wrap"><table class="heat" id="heat"></table></div>
+    </section>
+
+    <section class="panel">
+      <div class="sec-head"><h2>The route to contest-ready Java</h2><p>Each part builds on the ones before it.</p></div>
+      <ol class="road" id="road"></ol>
+    </section>
+
+    <div id="chapters"></div>
+    <div class="empty" id="empty" hidden>No exercises match. Clear the search, the level filter or "Hide done".</div>
+  </main>
+</div>
+
+<script type="application/json" id="data">/*DATA_JSON*/</script>
+<script>
+/*COMMON_JS*/
+const KEY_URL = "/*KEY_URL*/";
+const ROMAN = ["I", "II", "III", "IV", "V", "VI"];
+const TOTAL = DATA.exercises.length;
+$("#eyebrow").textContent = `${TOTAL} exercises · ${DATA.chapters.length} chapters · Java 21 · violet pen`;
+$("#q").placeholder = `Search ${TOTAL} exercises: TreeMap, sieve, 5.4…`;
+let done = new Set();
+const levels = new Set();
+let hideDone = false;
+
+/* ---------- progress storage: account when available, else this browser ---------- */
+const store = { ref: null, dirty: false, writing: Promise.resolve(), timer: 0 };
+try { JSON.parse(localStorage.getItem("/*STORE_KEY*/.done") || "[]").forEach(id => done.add(id)); } catch {}
+const saveLocal = () => { try { localStorage.setItem("/*STORE_KEY*/.done", JSON.stringify([...done])); } catch {} };
+function setSync(account) {
+  $("#sync").classList.toggle("account", account);
+  $("#sync span").textContent = account ? "Ticks are saved to your Claude account and follow you across devices" : "Ticks are saved in this browser";
+}
+function queueSave() {
+  saveLocal();
+  if (!store.ref) return;
+  store.dirty = true;
+  clearTimeout(store.timer);
+  store.timer = setTimeout(() => {
+    const body = { done: [...done].sort(), updated: new Date().toISOString() };
+    store.writing = store.writing.then(() => store.ref.set(body)).then(() => { store.dirty = false; })
+      .catch(() => { store.ref = null; store.dirty = false; setSync(false); });
+  }, 700);
+}
+
+/* ---------- overflow lab ---------- */
+// Java integer semantics, computed exactly with BigInt and then wrapped to 32 or 64 bits like the JVM does.
+const WIDTH = { int: 32, long: 64 };
+const OPS = [
+  ["mul", "a * b"], ["add", "a + b"], ["sub", "a - b"], ["div", "a / b"], ["rem", "a % b"],
+  ["fdiv", "Math.floorDiv(a, b)"], ["fmod", "Math.floorMod(a, b)"], ["shl", "a << b"], ["sar", "a >> b"], ["shr", "a >>> b"],
+  ["abs", "Math.abs(a)"], ["mid", "(a + b) / 2"],
+];
+const NAMED = { "Integer.MAX_VALUE": 2147483647n, "Integer.MIN_VALUE": -2147483648n, "Long.MAX_VALUE": 9223372036854775807n, "Long.MIN_VALUE": -9223372036854775808n };
+$("#lOp").innerHTML = OPS.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("");
+const LAB_PRESETS = [
+  ["int", "100000", "mul", "100000", "100000 * 100000"], ["int", "2147483647", "add", "1", "MAX + 1"], ["int", "-2147483648", "abs", "0", "abs(MIN)"],
+  ["int", "2000000000", "mid", "2100000000", "(a + b) / 2"], ["int", "-7", "div", "2", "-7 / 2"], ["int", "-7", "rem", "2", "-7 % 2"],
+  ["int", "-7", "fmod", "2", "floorMod(-7, 2)"], ["int", "1", "shl", "40", "1 << 40"], ["long", "1", "shl", "40", "1L << 40"],
+  ["int", "-16", "shr", "28", "-16 >>> 28"], ["long", "4000000000", "mul", "4000000000", "long * long"],
+];
+$("#presets").innerHTML = LAB_PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p[4])}</button>`).join("");
+function parseBig(text) {
+  const t = text.trim();
+  if (t in NAMED) return NAMED[t];
+  const clean = t.replace(/_/g, "").replace(/[lL]$/, "");
+  return /^-?\d{1,40}$/.test(clean) ? BigInt(clean) : null;
+}
+const wrap = (x, w) => BigInt.asIntN(w, x);
+const floorDiv = (a, b) => { let q = a / b; if (a % b !== 0n && (a < 0n) !== (b < 0n)) q -= 1n; return q; };
+const fmt = x => x.toLocaleString("en-US");
+function javaEval(type, op, a, b) {
+  const w = WIDTH[type], W = BigInt(w), mask = w - 1;
+  const count = Number(BigInt.asUintN(w === 32 ? 5 : 6, b));
+  const r = { java: null, exact: null, badge: "ok", label: "EXACT", why: "" };
+  const big = type === "int" ? "Cast one side to long first, for example (long) a * b, or call Math.multiplyExact to get an exception instead of a wrong answer."
+                             : "Past 64 bits, reduce modulo first, or use Math.multiplyHigh or BigInteger.";
+  const zero = () => { r.err = "ArithmeticException: / by zero"; r.badge = "bad"; r.label = "THROWS"; r.why = "Integer division and remainder by zero throw at run time. Doubles would give Infinity or NaN instead."; return r; };
+  switch (op) {
+    case "add": r.exact = a + b; r.java = wrap(r.exact, w); break;
+    case "sub": r.exact = a - b; r.java = wrap(r.exact, w); break;
+    case "mul": r.exact = a * b; r.java = wrap(r.exact, w); break;
+    case "div": if (b === 0n) return zero(); r.exact = a / b; r.java = wrap(r.exact, w); break;
+    case "rem": if (b === 0n) return zero(); r.exact = a % b; r.java = r.exact; break;
+    case "fdiv": if (b === 0n) return zero(); r.exact = floorDiv(a, b); r.java = wrap(r.exact, w); break;
+    case "fmod": if (b === 0n) return zero(); r.exact = a - floorDiv(a, b) * b; r.java = r.exact; break;
+    case "abs": r.exact = a < 0n ? -a : a; r.java = wrap(r.exact, w); break;
+    case "mid": r.exact = (a + b) / 2n; r.java = wrap(wrap(a + b, w) / 2n, w); break;
+    case "shl": r.java = wrap(a << BigInt(count), w); r.exact = b >= 0n && b <= 256n ? a * (1n << b) : null; break;
+    case "sar": r.java = a >> BigInt(count); r.exact = b >= 0n ? (b >= W ? (a < 0n ? -1n : 0n) : a >> b) : null; break;
+    case "shr": r.java = wrap(BigInt.asUintN(w, a) >> BigInt(count), w); r.exact = null; break;
+  }
+  const shift = op === "shl" || op === "sar" || op === "shr";
+  if (shift && (b < 0n || b > BigInt(mask))) {
+    r.badge = "bad"; r.label = "COUNT MASKED";
+    r.why = `A shift on ${type} uses only the low ${w === 32 ? 5 : 6} bits of the count, so b becomes b & ${mask} = ${count}.` + (type === "int" ? " Write 1L << b when b can reach 31." : "");
+  } else if (op === "shr") {
+    r.badge = "info"; r.label = "ZERO FILL";
+    r.why = a < 0n ? "The unsigned shift fills the top with zeros, so a negative number turns into a large positive one. Use >> to keep the sign." : "For non-negative values >>> and >> agree; they differ only when the sign bit is set.";
+  } else if (r.exact !== null && r.java !== r.exact) {
+    r.badge = "bad"; r.label = "OVERFLOW";
+    r.why = op === "abs" ? `-${fmt(-a)} has no positive partner in ${type}, so Math.abs returns it unchanged. Widen to long first, or treat MIN_VALUE as a special case.`
+      : op === "mid" ? "a + b overflowed before the division. Use a + (b - a) / 2, or (a + b) >>> 1 when both are non-negative."
+      : op === "shl" ? `Bits were pushed past bit ${mask}, so the value wrapped. Shift a long, or check b first.`
+      : op === "div" || op === "fdiv" ? `MIN_VALUE / -1 is the one quotient that does not fit in ${type}; Java returns MIN_VALUE without an error.`
+      : `The true value needs more than ${w} bits, so Java keeps the low ${w} and the sign can flip. ${big}`;
+  } else if ((op === "div" || op === "rem") && a % b !== 0n && (a < 0n) !== (b < 0n)) {
+    r.badge = "info"; r.label = op === "div" ? "TOWARD ZERO" : "SIGN OF a";
+    r.why = op === "div" ? `Java's / truncates toward zero. Math.floorDiv(a, b) gives ${fmt(floorDiv(a, b))}, the floor that Python's // would give.`
+                         : `Java's % takes the sign of a. Math.floorMod(a, b) gives ${fmt(a - floorDiv(a, b) * b)}, always in the range of b.`;
+  } else {
+    r.why = op === "fmod" ? "floorMod returns a result with the sign of b, which is what you want for array indices and modular arithmetic."
+          : op === "fdiv" ? "floorDiv rounds down, so negative quotients match the mathematical floor." : `Fits in ${type}: Java's answer is the true value.`;
+  }
+  return r;
+}
+function drawLab() {
+  const type = $("#lType").value, op = $("#lOp").value, w = WIDTH[type];
+  const a = parseBig($("#lA").value), b = op === "abs" ? 0n : parseBig($("#lB").value);
+  $("#lB").disabled = op === "abs";
+  const tmpl = OPS.find(o => o[0] === op)[1];
+  const lit = (x, isCount) => x === null ? "?" : (x < 0n ? `(${x})` : String(x)) + (type === "long" && !isCount ? "L" : "");
+  const shift = op === "shl" || op === "sar" || op === "shr";
+  $("#expr").textContent = tmpl.replace("a", lit(a).replace(/^\((-.*)\)(L?)$/, "$1$2")).replace("b", lit(b, shift));
+  const lo = -(1n << BigInt(w - 1)), hi = (1n << BigInt(w - 1)) - 1n;
+  let r;
+  if (a === null || b === null) r = { err: "Type a whole number, or a name such as Integer.MAX_VALUE.", badge: "info", label: "WAITING", why: "" };
+  else if (a < lo || a > hi || (!shift && (b < lo || b > hi)))
+    r = { err: `Outside ${type}: ${fmt(lo)} to ${fmt(hi)}.`, badge: "bad", label: "WON'T COMPILE", why: `As a literal this is a compile error ("integer number too large"). If it came from arithmetic, it has already wrapped.${type === "int" ? " Switch the type to long." : ""}` };
+  else r = javaEval(type, op, a, b);
+  $("#verdict").innerHTML = (r.err ? `<dt>Java gives</dt><dd>${esc(r.err)}</dd>` :
+    `<dt>Java gives</dt><dd>${fmt(r.java)}</dd><dt>True value</dt><dd>${r.exact === null ? "no arithmetic equivalent" : fmt(r.exact)}</dd>`) +
+    `<dt>Verdict</dt><dd><span class="badge ${r.badge}">${r.label}</span></dd>`;
+  $("#why").textContent = r.why;
+  const bits = r.err ? "" : BigInt.asUintN(w, r.java).toString(2).padStart(w, "0");
+  $("#bits").innerHTML = Array.from({ length: w }, (_, i) => {
+    const v = bits ? bits[i] : "";
+    return `<span class="bit${v === "1" ? " one" : ""}${i === 0 ? " sign" : ""}">${v}</span>`;
+  }).join("");
+  $("#bitsL").textContent = `bit ${w - 1} (sign)`;
+}
+["#lType", "#lOp"].forEach(id => $(id).addEventListener("change", drawLab));
+["#lA", "#lB"].forEach(id => $(id).addEventListener("input", drawLab));
+$("#presets").addEventListener("click", ev => {
+  const btn = ev.target.closest("[data-preset]"); if (!btn) return;
+  const [t, a, op, b] = LAB_PRESETS[btn.dataset.preset];
+  $("#lType").value = t; $("#lA").value = a; $("#lOp").value = op; $("#lB").value = b; drawLab();
+});
+$("#lA").value = "100000"; $("#lB").value = "100000";
+
+/* ---------- cost heatmap ---------- */
+const HEAT = [
+  ["int[]", 5, [["o1", "O(1)", "a[i]"], ["on", "O(N)", "scan; binarySearch is O(log N) if sorted"], ["na", "Fixed size", "Arrays.copyOf to grow, O(N)"], ["na", "Fixed size", "shift by hand, O(N)"]]],
+  ["ArrayList", 6, [["o1", "O(1)", "get(i)"], ["on", "O(N)", "contains, indexOf"], ["o1", "O(1)", "add(x) amortized; add(0, x) is O(N)"], ["o1", "O(1)", "remove last; remove(0) is O(N)"]]],
+  ["StringBuilder", 3, [["o1", "O(1)", "charAt(i)"], ["on", "O(N)", "indexOf, typical"], ["o1", "O(1)", "append, amortized"], ["o1", "O(1)", "at the end; in the middle O(N)"]]],
+  ["HashMap, HashSet", 7, [["na", "No order", "iteration order is arbitrary"], ["o1", "O(1)", "get, containsKey, average"], ["o1", "O(1)", "put, merge"], ["o1", "O(1)", "remove"]]],
+  ["TreeMap, TreeSet", 7, [["ologn", "O(log N)", "firstKey, lastKey; no get(i)"], ["ologn", "O(log N)", "get, floorKey, ceilingKey"], ["ologn", "O(log N)", "put, add"], ["ologn", "O(log N)", "remove, pollFirst"]]],
+  ["ArrayDeque", 9, [["o1", "O(1)", "peekFirst, peekLast; no get(i)"], ["on", "O(N)", "contains"], ["o1", "O(1)", "offerFirst, offerLast"], ["o1", "O(1)", "pollFirst, pollLast"]]],
+  ["PriorityQueue", 9, [["o1", "O(1)", "peek is the smallest"], ["on", "O(N)", "contains"], ["ologn", "O(log N)", "offer"], ["ologn", "O(log N)", "poll; remove(x) is O(N)"]]],
+];
+$("#heat").innerHTML = `<thead><tr><th>Structure</th><th>Read</th><th>Search</th><th>Insert</th><th>Delete</th></tr></thead><tbody>` +
+  HEAT.map(([name, ch, cells]) => `<tr><td class="name"><a href="#ch-${ch}"><code class="mono">${name}</code></a><small>Chapter ${ch}</small></td>${cells.map(([c, t, s]) =>
+    `<td><div class="tile ${c}"><b>${t}</b>${s ? `<span>${s}</span>` : ""}</div></td>`).join("")}</tr>`).join("") + "</tbody>";
+
+/* ---------- roadmap, chapters, cards ---------- */
+$("#road").innerHTML = DATA.parts.map(p => `<li><a href="#ch-${p.chs[0]}"><span class="pn">${ROMAN[p.n - 1]}</span><span class="pname">${esc(p.name)}</span>
+  <span class="pchs">Ch ${p.chs[0]}${p.chs.length > 1 ? "–" + p.chs.at(-1) : ""}</span><span class="pcount" data-pcount="${p.n}"></span><span class="pbar"><i data-pbar="${p.n}"></i></span></a></li>`).join("");
+const counts = { Core: 0, Practice: 0, Stretch: 0 };
+DATA.exercises.forEach(e => counts[e.level]++);
+$("#levelsRow").innerHTML = Object.entries(counts).map(([k, v]) => `<span><b>${v}</b>${k}</span>`).join("");
+
+const CHECK = `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+function cardHTML(e) {
+  const sol = KEY_URL ? `<a class="sol-link" href="${KEY_URL}#${slug(e.id)}" target="_blank" rel="noopener">Solution ↗</a>` : "";
+  return `<article class="card" id="${slug(e.id)}" data-id="${e.id}">
+    <button class="tick" type="button" aria-pressed="false" aria-label="Mark ${e.id} done">${CHECK}</button>
+    <div style="min-width:0">
+      <div class="card-top"><span class="card-id">${e.id}</span><span class="card-title">${esc(e.title)}</span><span class="level ${e.level}">${e.level}</span><span class="card-spacer"></span>${sol}</div>
+      <p class="prompt">${rich(e.prompt)}</p>
+      <div class="example"><b>e.g.</b><span>${rich(e.example)}</span></div>
+    </div></article>`;
+}
+$("#chapters").innerHTML = DATA.chapters.map(c => `<section class="chapter" id="ch-${c.ch}" data-ch="${c.ch}">
+  <header class="chapter-head"><span class="chapter-num">${String(c.ch).padStart(2, "0")}</span><h2 class="chapter-title">${esc(c.title)}</h2>
+    <div class="chapter-meta"><button class="file-chip" data-file="${c.file}" type="button" title="Copy file name">${c.file}</button><span class="ch-progress" data-chp="${c.ch}"></span></div>
+    <p class="chapter-focus" style="margin:0">${esc(c.focus)}</p></header>
+  <div class="cards">${DATA.exercises.filter(e => e.ch === c.ch).map(cardHTML).join("")}</div></section>`).join("");
+
+const chTotal = ch => DATA.exercises.filter(e => e.ch === ch).length;
+const chDone = ch => DATA.exercises.filter(e => e.ch === ch && done.has(e.id)).length;
+function paintAll(justFinished) {
+  $$(".card").forEach(card => {
+    const on = done.has(card.dataset.id);
+    card.classList.toggle("done", on);
+    $(".tick", card).setAttribute("aria-pressed", on);
+  });
+  DATA.chapters.forEach(c => {
+    const d = chDone(c.ch), t = chTotal(c.ch);
+    const el = $(`[data-chp="${c.ch}"]`);
+    el.innerHTML = d === t ? `<span class="stamp">COMPLETE</span>` : `${d} / ${t} done`;
+    if (d === t && justFinished === c.ch) { el.firstChild.style.animation = "none"; void el.offsetWidth; el.firstChild.style.animation = ""; }
+    $(`[data-count="${c.ch}"]`).textContent = `${d}/${t}`;
+    $(`[data-bar="${c.ch}"]`).style.width = (100 * d / t) + "%";
+  });
+  DATA.parts.forEach(p => {
+    const t = p.chs.reduce((s, ch) => s + chTotal(ch), 0), d = p.chs.reduce((s, ch) => s + chDone(ch), 0);
+    $(`[data-pcount="${p.n}"]`).textContent = `${d} / ${t} done`;
+    $(`[data-pbar="${p.n}"]`).style.width = (100 * d / t) + "%";
+  });
+  const n = done.size;
+  $("#doneNum").textContent = `${n} / ${TOTAL}`;
+  $("#donePct").textContent = `${Math.round(100 * n / TOTAL)}% done`;
+  $("#ring").style.strokeDashoffset = 113.1 * (1 - n / TOTAL);
+  applyFilter();
+}
+
+document.addEventListener("click", ev => {
+  const chip = ev.target.closest(".file-chip");
+  if (chip) return copyText(chip.dataset.file, chip);
+  const t = ev.target.closest(".tick");
+  if (!t) return;
+  const card = t.closest(".card"), id = card.dataset.id;
+  const ch = Number(id.split(".")[0]);
+  done.has(id) ? done.delete(id) : done.add(id);
+  const finished = done.has(id) && chDone(ch) === chTotal(ch);
+  paintAll(finished ? ch : undefined);
+  if (finished) toast(`Chapter ${ch} complete`);
+  queueSave();
+});
+
+function applyFilter() {
+  const q = $("#q").value.trim().toLowerCase();
+  let shown = 0;
+  $$(".chapter").forEach(sec => {
+    let any = 0;
+    $$(".card", sec).forEach(card => {
+      const e = DATA.exercises.find(x => x.id === card.dataset.id);
+      const hay = (e.id + " " + e.title + " " + e.prompt + " " + e.example).toLowerCase();
+      const ok = (!levels.size || levels.has(e.level)) && (!hideDone || !done.has(e.id)) && (!q || hay.includes(q));
+      card.hidden = !ok; if (ok) any++;
+    });
+    sec.hidden = !any; shown += any;
+  });
+  $("#empty").hidden = shown > 0;
+}
+$("#q").addEventListener("input", applyFilter);
+$$(".chip[data-level]").forEach(ch => ch.addEventListener("click", () => {
+  const on = ch.getAttribute("aria-pressed") !== "true";
+  ch.setAttribute("aria-pressed", on); on ? levels.add(ch.dataset.level) : levels.delete(ch.dataset.level);
+  applyFilter();
+}));
+$("#hideDone").addEventListener("click", ev => {
+  hideDone = ev.currentTarget.getAttribute("aria-pressed") !== "true";
+  ev.currentTarget.setAttribute("aria-pressed", hideDone);
+  applyFilter();
+});
+function openHash() {
+  const id = location.hash.slice(1), el = id && document.getElementById(id);
+  if (!el || !el.classList.contains("card")) return;
+  el.hidden = false; el.closest(".chapter").hidden = false;
+  el.scrollIntoView({ block: "start" });
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+addEventListener("hashchange", openHash);
+
+drawLab();
+buildRail($("#rail"));
+paintAll();
+syncHeaderHeight();
+openHash();
+</script>

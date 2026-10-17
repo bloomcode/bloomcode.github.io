@@ -1,0 +1,529 @@
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/*BASE_CSS*/
+/* Workbook writes in blue pen (base tokens); dark mode lifts the pen. */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pen: #86a8ff; --pen-ink: #0b1630; } }
+:root[data-theme="dark"] { --pen: #86a8ff; --pen-ink: #0b1630; }
+
+.meter { display: flex; align-items: center; gap: 10px; }
+.meter svg { width: 40px; height: 40px; transform: rotate(-90deg); }
+.meter circle { fill: none; stroke-width: 5; }
+.meter .track { stroke: var(--grid); }
+.meter .fill { stroke: var(--pen); stroke-linecap: round; transition: stroke-dashoffset 0.5s cubic-bezier(.2,.8,.2,1); }
+.meter-num { font: 800 17px/1 var(--display); font-stretch: 112%; font-variant-numeric: tabular-nums; }
+.meter-sub { font: 500 11px/1.3 var(--mono); color: var(--ink-3); }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: 24px 36px; align-items: center; }
+.hero h1 { font: 800 clamp(30px, 4.6vw, 48px)/1 var(--display); font-stretch: 118%; letter-spacing: -0.01em; }
+.hero h1 em { font-style: normal; color: var(--pen); }
+.hero p { color: var(--ink-2); max-width: 56ch; margin: 12px 0 0; }
+.levels-row { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; font: 500 13px var(--mono); color: var(--ink-2); }
+.levels-row b { font: 800 22px/1 var(--display); font-stretch: 112%; color: var(--ink); margin-right: 6px; font-variant-numeric: tabular-nums; }
+.sync { margin-top: 14px; font: 500 12px var(--mono); color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); display: inline-block; }
+.sync.account i { background: var(--o1); }
+
+/* Array playground */
+.play { background: var(--sheet-2); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; min-width: 0; }
+.play-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.play-title { font: 700 16px var(--display); font-stretch: 108%; margin-right: auto; }
+.steps-badge { font: 700 13px var(--mono); color: var(--pen); font-variant-numeric: tabular-nums; }
+.slots { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; margin: 14px 0 6px; }
+.slot {
+  aspect-ratio: 1 / 1.05; max-width: 100%; border-radius: 8px; display: grid; place-items: center; position: relative;
+  background: var(--sheet); border: 1.5px solid var(--ink); font: 700 clamp(13px, 2.2vw, 18px) var(--mono); color: var(--ink);
+  transition: background 0.15s, transform 0.15s, border-color 0.15s;
+}
+.slot.free { border-style: dashed; border-color: var(--rule); color: transparent; }
+.slot small { position: absolute; bottom: -18px; font: 500 10.5px var(--mono); color: var(--ink-3); }
+.slot.read { background: var(--o1); color: #fff; border-color: var(--o1); }
+.slot.cmp { background: var(--on); color: #22190a; border-color: var(--on); }
+.slot.shift { background: var(--pen); color: var(--pen-ink); border-color: var(--pen); transform: translateY(-4px); }
+.slot.write { background: var(--on2); color: #fff; border-color: var(--on2); transform: scale(1.06); }
+.ops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 26px; }
+.op {
+  height: 36px; border-radius: 8px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink);
+  font: 500 13px var(--body); cursor: pointer; transition: border-color .15s, background .15s;
+}
+.op:hover:not(:disabled) { border-color: var(--pen); background: var(--pen-soft); }
+.op:disabled { opacity: 0.45; cursor: not-allowed; }
+.op-out { margin-top: 12px; min-height: 44px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.op-out strong { color: var(--ink); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 11px var(--mono); color: var(--ink-3); margin-top: 6px; }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+
+/* Cost heatmap */
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 14px; }
+.sec-head h2 { font: 800 22px/1.15 var(--display); font-stretch: 112%; margin-right: auto; }
+.sec-head p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.heat-wrap { overflow-x: auto; }
+.heat { width: 100%; border-collapse: separate; border-spacing: 5px; min-width: 620px; }
+.heat th { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 0 6px 2px; }
+.heat td.name { font: 600 14px var(--body); padding-right: 10px; white-space: nowrap; }
+.heat td.name a { color: var(--ink); text-decoration: none; }
+.heat td.name a:hover { color: var(--pen); }
+.heat td.name small { display: block; font: 500 11px var(--mono); color: var(--ink-3); }
+.tile { border-radius: 7px; padding: 7px 9px; color: #fff; min-height: 46px; }
+.tile b { font: 700 13px var(--mono); display: block; }
+.tile span { font-size: 11.5px; opacity: 0.9; line-height: 1.3; display: block; }
+.tile.on { color: #22190a; }
+.tile.na { background: transparent; border: 1px dashed var(--rule); color: var(--ink-3); }
+.tile.o1 { background: var(--o1); } .tile.ologn { background: var(--ologn); } .tile.on { background: var(--on); }
+.tile.onlogn { background: var(--onlogn); } .tile.on2 { background: var(--on2); }
+
+/* Roadmap */
+.road { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; counter-reset: part; position: relative; }
+.road li { min-width: 0; }
+.road a {
+  display: grid; gap: 6px; height: 100%; text-decoration: none; color: var(--ink); background: var(--sheet-2);
+  border: 1px solid var(--rule); border-radius: 10px; padding: 12px; position: relative; transition: border-color .15s, transform .15s;
+}
+.road a:hover { border-color: var(--pen); transform: translateY(-2px); }
+.road .pn { font: 800 26px/1 var(--display); font-stretch: 125%; color: var(--pen); }
+.road .pname { font: 600 13.5px/1.3 var(--body); }
+.road .pchs { font: 500 11.5px var(--mono); color: var(--ink-3); }
+.road .pbar { height: 5px; background: var(--grid); border-radius: 5px; overflow: hidden; margin-top: auto; }
+.road .pbar i { display: block; height: 100%; width: 0; background: var(--pen); transition: width .4s; }
+.road .pcount { font: 600 11.5px var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.road li:not(:last-child) a::after {
+  content: ""; position: absolute; right: -11px; top: 24px; width: 12px; height: 2px; background: var(--rule);
+}
+
+/* Exercise cards with a tick */
+.tick {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--rule); background: var(--sheet);
+  display: grid; place-items: center; cursor: pointer; margin-top: 1px; transition: background .15s, border-color .15s, transform .15s;
+}
+.tick:hover { border-color: var(--pen); }
+.tick svg { width: 14px; height: 14px; stroke: var(--pen-ink); stroke-width: 3; fill: none; opacity: 0; }
+.card.done .tick { background: var(--pen); border-color: var(--pen); transform: scale(1.04); }
+.card.done .tick svg { opacity: 1; }
+.card.done { background: var(--sheet-2); }
+.card.done .card-title { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--pen); text-decoration-thickness: 2px; }
+.card.done .prompt, .card.done .example { opacity: 0.7; }
+.sol-link { font: 600 12.5px var(--body); text-decoration: none; color: var(--pen); border: 1px solid var(--pen-soft); background: var(--pen-soft); padding: 4px 10px; border-radius: 999px; }
+.sol-link:hover { border-color: var(--pen); }
+.stamp {
+  font: 800 11px/1 var(--display); font-stretch: 125%; letter-spacing: 0.14em; color: var(--pen); border: 2px solid var(--pen);
+  padding: 5px 8px; border-radius: 4px; transform: rotate(-4deg); display: inline-block;
+}
+.chapter-meta .stamp { animation: stampin .35s cubic-bezier(.2,1.6,.4,1); }
+@keyframes stampin { from { transform: rotate(-4deg) scale(1.6); opacity: 0; } to { transform: rotate(-4deg) scale(1); opacity: 1; } }
+
+@media (max-width: 1000px) { .road { grid-template-columns: repeat(3, minmax(0, 1fr)); } .road li a::after { display: none; } }
+@media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .road { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ops { grid-template-columns: repeat(2, minmax(0, 1fr)); } .meter-sub { display: none; } }
+/* Bloom filter playground */
+.bits { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 20px 4px; margin: 14px 0 22px; }
+@media (max-width: 560px) { .bits { grid-template-columns: repeat(8, minmax(0, 1fr)); } .bf-form { grid-template-columns: minmax(0, 1fr) auto auto; } .bf-label { display: none; } }
+.bit {
+  position: relative; aspect-ratio: 1 / 1.25; max-width: 100%; border-radius: 5px; border: 1.5px solid var(--rule); background: var(--sheet);
+  display: grid; place-items: center; font: 700 clamp(10px, 1.6vw, 13px) var(--mono); color: var(--ink-3); transition: background .2s, border-color .2s, transform .2s;
+}
+.bit small { position: absolute; bottom: -15px; font: 500 9px var(--mono); color: var(--ink-3); }
+.bit.on { background: var(--pen); border-color: var(--pen); color: var(--pen-ink); }
+.bit.probe { border-color: var(--on); box-shadow: 0 0 0 2px var(--on); transform: translateY(-3px); }
+.bit.miss { border-color: var(--on2); box-shadow: 0 0 0 2px var(--on2); transform: translateY(-3px); }
+.bf-form { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px; align-items: center; margin-top: 8px; }
+.bf-label { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.bf-form input { height: 36px; min-width: 0; border-radius: 8px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); font: 500 14px var(--mono); padding: 0 10px; }
+.bf-form .op { padding: 0 16px; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.presets button { height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); font: 600 12.5px var(--mono); cursor: pointer; }
+.presets button:hover { border-color: var(--pen); background: var(--pen-soft); }
+.presets button.ask { border-style: dashed; }
+.verdict { font: 700 13px var(--body); padding: 4px 10px; border-radius: 999px; color: #fff; }
+.verdict.no { background: var(--o1); } .verdict.yes { background: var(--pen); color: var(--pen-ink); } .verdict.fp { background: var(--on2); }
+.bf-added { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; font: 500 12px var(--mono); color: var(--ink-3); }
+.bf-added span { background: var(--pen-soft); color: var(--ink); padding: 2px 8px; border-radius: 5px; }
+
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark">WB</span>
+      <span><span class="brand-name">Practice Workbook</span><br><span class="brand-sub">DSA in {{LANG_NAME}}</span></span>
+    </a>
+    <label class="search" for="q">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search {{TOTAL}} exercises: delete, heap, treap, 24.2…" autocomplete="off">
+    </label>
+    <div class="chips" role="group" aria-label="Filter exercises">
+      <button class="chip" data-level="Core" aria-pressed="false"><span class="dot" style="background:var(--core)"></span>Core</button>
+      <button class="chip" data-level="Practice" aria-pressed="false"><span class="dot" style="background:var(--practice)"></span>Practice</button>
+      <button class="chip" data-level="Stretch" aria-pressed="false"><span class="dot" style="background:var(--stretch)"></span>Stretch</button>
+      <button class="chip" id="hideDone" aria-pressed="false">Hide done</button>
+    </div>
+    <div class="meter" aria-live="polite">
+      <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="fill" id="ring" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1"/></svg>
+      <div><div class="meter-num" id="doneNum">0 / {{TOTAL}}</div><div class="meter-sub" id="donePct">0% done</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="shell" id="top">
+  <nav class="rail" id="rail" aria-label="Chapters"></nav>
+  <main>
+    <section class="panel hero">
+      <div>
+        <div class="eyebrow">{{TOTAL}} exercises · {{CHAPTERS}} chapters · {{LANG_NAME}} · blue pen</div>
+        <h1>Every operation has a price. <em>Count it.</em></h1>
+        <p>Build each data structure by hand, predict its steps, then tick it off. The track runs from arrays and Big O through trees, graphs and dynamic programming to caches, self-balancing trees, data bigger than memory, randomized algorithms and sets stored in single bits. Every exercise has its own test in the <a href="https://github.com/bloomcode/{{STARTER}}">{{STARTER}}</a> starter.</p>
+        <div class="levels-row" id="levelsRow"></div>
+        <div class="sync" id="sync"><i></i><span>Ticks are saved in this browser</span></div>
+      </div>
+      <div class="play" id="play">
+        <div class="play-head"><span class="play-title">Array playground</span><span class="steps-badge" id="steps">0 steps</span></div>
+        <div class="slots" id="slots"></div>
+        <div class="ops">
+          <button class="op" data-op="read" type="button">Read a[2]</button>
+          <button class="op" data-op="search" type="button">Search for 19</button>
+          <button class="op" data-op="reset" type="button">Reset</button>
+          <button class="op" data-op="insStart" type="button">Insert at start</button>
+          <button class="op" data-op="insEnd" type="button">Insert at end</button>
+          <button class="op" data-op="insMid" type="button">Insert at index 2</button>
+          <button class="op" data-op="delStart" type="button">Delete at start</button>
+          <button class="op" data-op="delEnd" type="button">Delete at end</button>
+          <button class="op" data-op="delMid" type="button">Delete at index 2</button>
+        </div>
+        <div class="op-out" id="opOut"><span>Press an operation to watch every step. It is exercises 1.2 to 1.12 in motion.</span></div>
+        <div class="legend"><span style="--c:var(--o1)">read</span><span style="--c:var(--on)">compare</span><span style="--c:var(--pen)">shift</span><span style="--c:var(--on2)">write</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="sec-head"><h2>Bloom filter playground</h2><p>Chapter 33: a set that answers “definitely not” or “probably yes” in a few bits per item.</p></div>
+      <div class="play" id="bfPlay">
+        <div class="play-head"><span class="play-title">Bloom filter playground</span><span class="steps-badge" id="bfStats">0 of 32 bits set</span></div>
+        <div class="bits" id="bits"></div>
+        <form class="bf-form" id="bfForm" autocomplete="off">
+          <label class="bf-label" for="bfWord">Word</label>
+          <input id="bfWord" type="text" maxlength="20" placeholder="Type a word, e.g. owl">
+          <button class="op" type="submit" data-bf="add">Add</button>
+          <button class="op" type="button" data-bf="check">Check</button>
+        </form>
+        <div class="presets" id="bfPresets"></div>
+        <div class="op-out" id="bfOut"><span>Add a few words, then check one you never added. Exercises 33.1 to 33.6 in motion: m = 32 bits, k = 3 hashes.</span></div>
+        <div class="bf-added" id="bfAdded"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="sec-head"><h2>What each operation costs</h2><p>Worst case unless the tile says otherwise. Click a structure to jump to its chapter.</p></div>
+      <div class="heat-wrap"><table class="heat" id="heat"></table></div>
+    </section>
+
+    <section class="panel">
+      <div class="sec-head"><h2>Beyond step counting</h2><p>Balanced, randomized, external-memory and bit-level structures from chapters 21 to 33.</p></div>
+      <div class="heat-wrap"><table class="heat" id="heat2"></table></div>
+    </section>
+
+    <section class="panel">
+      <div class="sec-head"><h2>The route through the track</h2><p>Each part builds on the ones before it.</p></div>
+      <ol class="road" id="road"></ol>
+    </section>
+
+    <div id="chapters"></div>
+    <div class="empty" id="empty" hidden>No exercises match. Clear the search, the level filter or "Hide done".</div>
+  </main>
+</div>
+
+<script type="application/json" id="data">/*DATA_JSON*/</script>
+<script>
+/*COMMON_JS*/
+const KEY_URL = "/*KEY_URL*/";
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
+const TOTAL = DATA.exercises.length;
+let done = new Set();
+const levels = new Set();
+let hideDone = false;
+
+/* ---------- progress storage: account when available, else this browser ---------- */
+const store = { ref: null, dirty: false, writing: Promise.resolve(), timer: 0 };
+try { JSON.parse(localStorage.getItem("/*STORE_KEY*/.done") || "[]").forEach(id => done.add(id)); } catch {}
+const saveLocal = () => { try { localStorage.setItem("/*STORE_KEY*/.done", JSON.stringify([...done])); } catch {} };
+function setSync(account) {
+  $("#sync").classList.toggle("account", account);
+  $("#sync span").textContent = account ? "Ticks are saved to your Claude account and follow you across devices" : "Ticks are saved in this browser";
+}
+function queueSave() {
+  saveLocal();
+  if (!store.ref) return;
+  store.dirty = true;
+  clearTimeout(store.timer);
+  store.timer = setTimeout(() => {
+    const body = { done: [...done].sort(), updated: new Date().toISOString() };
+    store.writing = store.writing.then(() => store.ref.set(body)).then(() => { store.dirty = false; })
+      .catch(() => { store.ref = null; store.dirty = false; setSync(false); });
+  }, 700);
+}
+
+/* ---------- array playground ---------- */
+const CAP = 8, START = [12, 7, 31, 4, 19];
+let arr = [...START], busy = false, nextVal = 42;
+const delay = ms => new Promise(r => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : ms));
+function drawSlots(marks = {}) {
+  $("#slots").innerHTML = Array.from({ length: CAP }, (_, i) => {
+    const v = arr[i];
+    return `<div class="slot ${v === undefined ? "free" : ""} ${marks[i] || ""}">${v === undefined ? "·" : v}<small>${i}</small></div>`;
+  }).join("");
+  $$("[data-op]").forEach(b => {
+    const op = b.dataset.op;
+    b.disabled = busy || (op.startsWith("ins") && arr.length >= CAP) || (op.startsWith("del") && !arr.length) ||
+      (op === "read" && arr.length < 3) || (op.endsWith("Mid") && op.startsWith("del") && arr.length < 3) || (op === "insMid" && arr.length < 2);
+  });
+}
+async function run(op) {
+  if (busy) return;
+  if (op === "reset") { arr = [...START]; nextVal = 42; $("#steps").textContent = "0 steps"; $("#opOut").innerHTML = "<span>Back to five values. Pick an operation.</span>"; return drawSlots(); }
+  busy = true;
+  let steps = 0, frames = [], label = "", cx = "", detail = "";
+  const n = arr.length;
+  const tick = (i, kind) => frames.push({ i, kind });
+  if (op === "read") { tick(2, "read"); steps = 1; label = "Read a[2]"; cx = "O(1)"; detail = "one jump straight to the address"; }
+  if (op === "search") {
+    const target = 19; let found = -1;
+    for (let i = 0; i < n; i++) { tick(i, "cmp"); steps++; if (arr[i] === target) { found = i; break; } }
+    label = "Search for 19"; cx = "O(N)"; detail = found >= 0 ? `found at index ${found} after ${steps} comparisons` : `not found, all ${steps} slots checked`;
+  }
+  const val = nextVal;
+  if (op === "insStart" || op === "insMid" || op === "insEnd") {
+    const at = op === "insStart" ? 0 : op === "insMid" ? 2 : n;
+    for (let i = n; i > at; i--) tick(i, "shift");
+    tick(at, "write");
+    steps = n - at + 1;
+    label = `Insert ${val} at ${op === "insEnd" ? "the end" : "index " + at}`;
+    cx = op === "insEnd" ? "O(1)" : "O(N)"; detail = `${n - at} shift${n - at === 1 ? "" : "s"} + 1 write`;
+  }
+  if (op === "delStart" || op === "delMid" || op === "delEnd") {
+    const at = op === "delStart" ? 0 : op === "delMid" ? 2 : n - 1;
+    tick(at, "write");
+    for (let i = at; i < n - 1; i++) tick(i, "shift");
+    steps = n - at;
+    label = `Delete ${arr[at]} at ${op === "delEnd" ? "the end" : "index " + at}`;
+    cx = op === "delEnd" ? "O(1)" : "O(N)"; detail = `1 delete + ${n - 1 - at} shift${n - 1 - at === 1 ? "" : "s"}`;
+  }
+  // Animate each step on the real array.
+  let count = 0;
+  for (const f of frames) {
+    count++;
+    if (f.kind === "shift" && op.startsWith("ins")) arr[f.i] = arr[f.i - 1];
+    if (f.kind === "shift" && op.startsWith("del")) arr[f.i] = arr[f.i + 1];
+    if (f.kind === "write" && op.startsWith("ins")) { arr[f.i] = val; nextVal = (nextVal * 7 + 13) % 89 + 10; }
+    if (f.kind === "write" && op.startsWith("del")) arr[f.i] = "×";
+    drawSlots({ [f.i]: f.kind });
+    $("#steps").textContent = `${count} step${count === 1 ? "" : "s"}`;
+    await delay(260);
+  }
+  if (op.startsWith("del")) arr.length = n - 1;
+  busy = false;
+  drawSlots();
+  $("#opOut").innerHTML = `<strong>${esc(label)}</strong><span>${esc(detail)} = ${steps} step${steps === 1 ? "" : "s"}</span><span class="cx ${cxClass(cx)}">${cx}</span>`;
+}
+$$("[data-op]").forEach(b => b.addEventListener("click", () => run(b.dataset.op)));
+
+/* ---------- cost heatmap ---------- */
+/* ---------- Bloom filter playground ---------- */
+const BF_M = 32, BF_K = 3;
+let bfBits = new Array(BF_M).fill(0), bfWords = [], bfBusy = false;
+// Two 32-bit FNV-1a variants combined by double hashing, like 33.1 (a demo hash, not SHA-256).
+function fnv(str, seed) {
+  let h = (2166136261 ^ seed) >>> 0;
+  for (const ch of str) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+function positions(word) {
+  const h1 = fnv(word, 0), h2 = fnv(word, 0x9e3779b9) | 1;
+  return Array.from({ length: BF_K }, (_, i) => (h1 + i * h2) % BF_M >>> 0);
+}
+function drawBits(marks = {}) {
+  $("#bits").innerHTML = bfBits.map((b, i) => `<div class="bit ${b ? "on" : ""} ${marks[i] || ""}">${b}<small>${i}</small></div>`).join("");
+  const set = bfBits.reduce((s, b) => s + b, 0), n = bfWords.length;
+  const fp = n ? Math.pow(1 - Math.exp(-BF_K * n / BF_M), BF_K) : 0;
+  $("#bfStats").textContent = `${set} of ${BF_M} bits set · ${n} word${n === 1 ? "" : "s"} · predicted false positives ${(100 * fp).toFixed(1)}%`;
+  $("#bfAdded").innerHTML = n ? "Added: " + bfWords.map(w => `<span>${esc(w)}</span>`).join("") : "";
+}
+const bfDelay = ms => new Promise(r => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : ms));
+async function bfRun(kind, raw) {
+  const word = (raw || "").trim().toLowerCase();
+  if (!word || bfBusy) return;
+  bfBusy = true;
+  const pos = positions(word);
+  const marks = {};
+  for (const p of pos) {
+    marks[p] = kind === "add" || bfBits[p] ? "probe" : "miss";
+    if (kind === "add") bfBits[p] = 1;
+    drawBits(marks);
+    await bfDelay(220);
+  }
+  if (kind === "add") {
+    if (!bfWords.includes(word)) bfWords.push(word);
+    $("#bfOut").innerHTML = `<strong>Added “${esc(word)}”</strong><span>set bits ${pos.join(", ")}</span><span class="cx o1">O(k)</span>`;
+  } else {
+    const allSet = pos.every(p => bfBits[p]);
+    const really = bfWords.includes(word);
+    const verdict = !allSet ? `<span class="verdict no">Definitely not in the set</span>`
+      : really ? `<span class="verdict yes">Probably in the set (it is)</span>`
+      : `<span class="verdict fp">False positive: never added</span>`;
+    $("#bfOut").innerHTML = `<strong>Check “${esc(word)}”</strong><span>bits ${pos.join(", ")}</span>${verdict}`;
+  }
+  await bfDelay(500);
+  bfBusy = false;
+  drawBits();
+}
+const BF_ADD = ["cat", "dog", "owl", "fox", "bee", "elk"], BF_ASK = ["cow", "ant", "yak", "emu"];
+$("#bfPresets").innerHTML = BF_ADD.map(w => `<button type="button" data-add="${w}">+ ${w}</button>`).join("") +
+  BF_ASK.map(w => `<button type="button" class="ask" data-ask="${w}">${w}?</button>`).join("") +
+  `<button type="button" data-reset="1">Reset</button>`;
+$("#bfPresets").addEventListener("click", ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  if (b.dataset.reset) { bfBits.fill(0); bfWords = []; $("#bfOut").innerHTML = "<span>Empty filter: every check now says definitely not.</span>"; return drawBits(); }
+  b.dataset.add ? bfRun("add", b.dataset.add) : bfRun("check", b.dataset.ask);
+});
+$("#bfForm").addEventListener("submit", ev => { ev.preventDefault(); bfRun("add", $("#bfWord").value); });
+$('[data-bf="check"]').addEventListener("click", () => bfRun("check", $("#bfWord").value));
+["cat", "dog", "owl"].forEach(w => { positions(w).forEach(p => bfBits[p] = 1); bfWords.push(w); });
+
+
+const HEAT = [
+  ["Array", 1, [["o1", "O(1)", "by index"], ["on", "O(N)", "linear search"], ["on", "O(N)", "O(1) at the end"], ["on", "O(N)", "O(1) at the end"]]],
+  ["Array-based set", 1, [["o1", "O(1)", "by index"], ["on", "O(N)", ""], ["on", "O(N)", "duplicate check first"], ["on", "O(N)", ""]]],
+  ["Ordered array", 2, [["o1", "O(1)", "by index"], ["ologn", "O(log N)", "binary search"], ["on", "O(N)", "shifting"], ["on", "O(N)", "shifting"]]],
+  ["Hash table", 8, [["o1", "O(1)", "by key"], ["o1", "O(1)", "average, by key"], ["o1", "O(1)", "average"], ["o1", "O(1)", "average"]]],
+  ["Stack / Queue", 9, [["o1", "O(1)", "top or front only"], ["na", "Not offered", "constrained by design"], ["o1", "O(1)", "push / enqueue"], ["o1", "O(1)", "pop / dequeue"]]],
+  ["Linked list", 14, [["on", "O(N)", "walk the links"], ["on", "O(N)", ""], ["o1", "O(1)", "at head, O(N) elsewhere"], ["o1", "O(1)", "at head, O(N) elsewhere"]]],
+  ["Doubly linked list", 14, [["on", "O(N)", "walk the links"], ["on", "O(N)", ""], ["o1", "O(1)", "at either end"], ["o1", "O(1)", "at either end"]]],
+  ["Binary search tree", 15, [["ologn", "O(log N)", "when balanced"], ["ologn", "O(log N)", "O(N) if degenerate"], ["ologn", "O(log N)", "when balanced"], ["ologn", "O(log N)", "when balanced"]]],
+  ["Heap", 16, [["o1", "O(1)", "root only"], ["na", "Not offered", ""], ["ologn", "O(log N)", "trickle up"], ["ologn", "O(log N)", "root, trickle down"]]],
+  ["Trie", 17, [["o1", "O(K)", "K = word length"], ["o1", "O(K)", "prefix walk"], ["o1", "O(K)", "independent of word count"], ["o1", "O(K)", ""]]],
+];
+$("#heat").innerHTML = `<thead><tr><th>Structure</th><th>Read</th><th>Search</th><th>Insert</th><th>Delete</th></tr></thead><tbody>` +
+  HEAT.map(([name, ch, cells]) => `<tr><td class="name"><a href="#ch-${ch}">${name}</a><small>Chapter ${ch}</small></td>${cells.map(([c, t, s]) =>
+    `<td><div class="tile ${c}"><b>${t}</b>${s ? `<span>${s}</span>` : ""}</div></td>`).join("")}</tr>`).join("") + "</tbody>";
+const HEAT2 = [
+  ["Plain BST (Chapter 15)", 25, [["on", "O(N)", "sorted input makes a list"], ["on", "O(N)", "worst case"], ["on", "O(N)", "worst case"], ["on", "O(N)", "one node per key"]]],
+  ["Red-black tree", 25, [["ologn", "O(log N)", "guaranteed"], ["ologn", "O(log N)", "at most 2 rotations"], ["ologn", "O(log N)", "at most 3 rotations"], ["on", "O(N)", "plus 1 colour bit"]]],
+  ["Treap", 26, [["ologn", "O(log N)", "expected"], ["ologn", "O(log N)", "expected"], ["ologn", "O(log N)", "expected"], ["on", "O(N)", "plus a priority"]]],
+  ["B-tree", 27, [["ologn", "O(log_B N)", "disk reads"], ["ologn", "O(log_B N)", "disk reads"], ["ologn", "O(log_B N)", "disk reads"], ["on", "O(N / B)", "blocks"]]],
+  ["LRU cache", 24, [["o1", "O(1)", "get"], ["o1", "O(1)", "put"], ["o1", "O(1)", "evict least recent"], ["on", "O(capacity)", "dict + linked list"]]],
+  ["Randomized hash table", 30, [["o1", "O(1)", "expected, any keys"], ["o1", "O(1)", "expected"], ["o1", "O(1)", "expected"], ["on", "O(N)", ""]]],
+  ["Bit vector", 32, [["o1", "O(1)", "one mask test"], ["o1", "O(1)", "OR in a bit"], ["o1", "O(1)", "AND out a bit"], ["on", "U bits", "for values 0..U-1"]]],
+  ["Bloom filter", 33, [["o1", "O(k)", "yes may be wrong"], ["o1", "O(k)", "set k bits"], ["na", "Not supported", "counting variant can"], ["on", "m bits", "about 9.6 per item at 1%"]]],
+];
+$("#heat2").innerHTML = `<thead><tr><th>Structure</th><th>Search</th><th>Insert</th><th>Delete</th><th>Space</th></tr></thead><tbody>` +
+  HEAT2.map(([name, ch, cells]) => `<tr><td class="name"><a href="#ch-${ch}">${name}</a><small>Chapter ${ch}</small></td>${cells.map(([c, t, s]) =>
+    `<td><div class="tile ${c}"><b>${t}</b>${s ? `<span>${s}</span>` : ""}</div></td>`).join("")}</tr>`).join("") + "</tbody>";
+
+
+/* ---------- roadmap, chapters, cards ---------- */
+$("#road").innerHTML = DATA.parts.map(p => `<li><a href="#ch-${p.chs[0]}"><span class="pn">${ROMAN[p.n - 1]}</span><span class="pname">${esc(p.name)}</span>
+  <span class="pchs">Ch ${p.chs[0]}${p.chs.length > 1 ? "–" + p.chs.at(-1) : ""}</span><span class="pcount" data-pcount="${p.n}"></span><span class="pbar"><i data-pbar="${p.n}"></i></span></a></li>`).join("");
+const counts = { Core: 0, Practice: 0, Stretch: 0 };
+DATA.exercises.forEach(e => counts[e.level]++);
+$("#levelsRow").innerHTML = Object.entries(counts).map(([k, v]) => `<span><b>${v}</b>${k}</span>`).join("");
+
+const CHECK = `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+function cardHTML(e) {
+  const sol = KEY_URL ? `<a class="sol-link" href="${KEY_URL}#${slug(e.id)}" target="_blank" rel="noopener">Solution ↗</a>` : "";
+  return `<article class="card" id="${slug(e.id)}" data-id="${e.id}">
+    <button class="tick" type="button" aria-pressed="false" aria-label="Mark ${e.id} done">${CHECK}</button>
+    <div style="min-width:0">
+      <div class="card-top"><span class="card-id">${e.id}</span><span class="card-title">${esc(e.title)}</span><span class="level ${e.level}">${e.level}</span><span class="card-spacer"></span>${sol}</div>
+      <p class="prompt">${rich(e.prompt)}</p>
+      <div class="example"><b>e.g.</b><span>${rich(e.example)}</span></div>
+    </div></article>`;
+}
+$("#chapters").innerHTML = DATA.chapters.map(c => `<section class="chapter" id="ch-${c.ch}" data-ch="${c.ch}">
+  <header class="chapter-head"><span class="chapter-num">${String(c.ch).padStart(2, "0")}</span><h2 class="chapter-title">${esc(c.title)}</h2>
+    <div class="chapter-meta"><button class="file-chip" data-file="${c.file}" type="button" title="Copy file name">${c.file}</button><span class="ch-progress" data-chp="${c.ch}"></span></div>
+    <p class="chapter-focus" style="margin:0">${esc(c.focus)}</p></header>
+  <div class="cards">${DATA.exercises.filter(e => e.ch === c.ch).map(cardHTML).join("")}</div></section>`).join("");
+
+const chTotal = ch => DATA.exercises.filter(e => e.ch === ch).length;
+const chDone = ch => DATA.exercises.filter(e => e.ch === ch && done.has(e.id)).length;
+function paintAll(justFinished) {
+  $$(".card").forEach(card => {
+    const on = done.has(card.dataset.id);
+    card.classList.toggle("done", on);
+    $(".tick", card).setAttribute("aria-pressed", on);
+  });
+  DATA.chapters.forEach(c => {
+    const d = chDone(c.ch), t = chTotal(c.ch);
+    const el = $(`[data-chp="${c.ch}"]`);
+    el.innerHTML = d === t ? `<span class="stamp">COMPLETE</span>` : `${d} / ${t} done`;
+    if (d === t && justFinished === c.ch) { el.firstChild.style.animation = "none"; void el.offsetWidth; el.firstChild.style.animation = ""; }
+    $(`[data-count="${c.ch}"]`).textContent = `${d}/${t}`;
+    $(`[data-bar="${c.ch}"]`).style.width = (100 * d / t) + "%";
+  });
+  DATA.parts.forEach(p => {
+    const t = p.chs.reduce((s, ch) => s + chTotal(ch), 0), d = p.chs.reduce((s, ch) => s + chDone(ch), 0);
+    $(`[data-pcount="${p.n}"]`).textContent = `${d} / ${t} done`;
+    $(`[data-pbar="${p.n}"]`).style.width = (100 * d / t) + "%";
+  });
+  const n = done.size;
+  $("#doneNum").textContent = `${n} / ${TOTAL}`;
+  $("#donePct").textContent = `${Math.round(100 * n / TOTAL)}% done`;
+  $("#ring").style.strokeDashoffset = 113.1 * (1 - n / TOTAL);
+  applyFilter();
+}
+
+document.addEventListener("click", ev => {
+  const chip = ev.target.closest(".file-chip");
+  if (chip) return copyText(chip.dataset.file, chip);
+  const t = ev.target.closest(".tick");
+  if (!t) return;
+  const card = t.closest(".card"), id = card.dataset.id;
+  const ch = Number(id.split(".")[0]);
+  done.has(id) ? done.delete(id) : done.add(id);
+  const finished = done.has(id) && chDone(ch) === chTotal(ch);
+  paintAll(finished ? ch : undefined);
+  if (finished) toast(`Chapter ${ch} complete`);
+  queueSave();
+});
+
+function applyFilter() {
+  const q = $("#q").value.trim().toLowerCase();
+  let shown = 0;
+  $$(".chapter").forEach(sec => {
+    let any = 0;
+    $$(".card", sec).forEach(card => {
+      const e = DATA.exercises.find(x => x.id === card.dataset.id);
+      const hay = (e.id + " " + e.title + " " + e.prompt + " " + e.example).toLowerCase();
+      const ok = (!levels.size || levels.has(e.level)) && (!hideDone || !done.has(e.id)) && (!q || hay.includes(q));
+      card.hidden = !ok; if (ok) any++;
+    });
+    sec.hidden = !any; shown += any;
+  });
+  $("#empty").hidden = shown > 0;
+}
+$("#q").addEventListener("input", applyFilter);
+$$(".chip[data-level]").forEach(ch => ch.addEventListener("click", () => {
+  const on = ch.getAttribute("aria-pressed") !== "true";
+  ch.setAttribute("aria-pressed", on); on ? levels.add(ch.dataset.level) : levels.delete(ch.dataset.level);
+  applyFilter();
+}));
+$("#hideDone").addEventListener("click", ev => {
+  hideDone = ev.currentTarget.getAttribute("aria-pressed") !== "true";
+  ev.currentTarget.setAttribute("aria-pressed", hideDone);
+  applyFilter();
+});
+function openHash() {
+  const id = location.hash.slice(1), el = id && document.getElementById(id);
+  if (!el || !el.classList.contains("card")) return;
+  el.hidden = false; el.closest(".chapter").hidden = false;
+  el.scrollIntoView({ block: "start" });
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+addEventListener("hashchange", openHash);
+
+drawSlots();
+drawBits();
+buildRail($("#rail"));
+paintAll();
+syncHeaderHeight();
+openHash();
+</script>
