@@ -23,11 +23,37 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Check out the solutions repos
-        run: |
-          for repo in dsa-python dsa-java dsa-go cp-python cp-java cp-go; do
-            git clone --depth 1 "https://github.com/${{ github.repository_owner }}/$repo-solutions.git" "src/$repo-solutions"
-          done
+      # The solutions repos are private; each is read with its own read-only deploy key.
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dsa-python-solutions
+          ssh-key: ${{ secrets.SOLUTIONS_KEY_DSA_PYTHON }}
+          path: src/dsa-python-solutions
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dsa-java-solutions
+          ssh-key: ${{ secrets.SOLUTIONS_KEY_DSA_JAVA }}
+          path: src/dsa-java-solutions
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dsa-go-solutions
+          ssh-key: ${{ secrets.SOLUTIONS_KEY_DSA_GO }}
+          path: src/dsa-go-solutions
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cp-python-solutions
+          ssh-key: ${{ secrets.SOLUTIONS_KEY_CP_PYTHON }}
+          path: src/cp-python-solutions
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cp-java-solutions
+          ssh-key: ${{ secrets.SOLUTIONS_KEY_CP_JAVA }}
+          path: src/cp-java-solutions
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cp-go-solutions
+          ssh-key: ${{ secrets.SOLUTIONS_KEY_CP_GO }}
+          path: src/cp-go-solutions
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
