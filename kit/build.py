@@ -145,6 +145,22 @@ SHELL_CSS = """
 .steps-site { margin: 0; padding-left: 20px; line-height: 1.7; color: var(--ink-2); }
 .steps-site code { font: 500 13px var(--mono); }
 .foot { font-size: 13px; color: var(--ink-3); }
+.sec { font: 800 22px var(--display); margin-bottom: 12px; }
+.lede { margin: 0 0 14px; color: var(--ink-2); line-height: 1.6; max-width: 72ch; }
+.hero-site .links { margin-top: 16px; }
+.start { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: s; }
+.start li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; color: var(--ink-2); line-height: 1.6; }
+.start li::before { content: counter(s); grid-row: span 2; font: 800 26px/1 var(--display); color: var(--pen); }
+.start li b, .help li b { color: var(--ink); }
+.start code, .help code, .card-site code { font: 500 13px var(--mono); }
+.card-site .why { color: var(--ink); }
+.langs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.langs li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.langs li > b { min-width: 52px; }
+.card-site > .links .stats { align-self: center; }
+.help { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.help li { display: grid; gap: 4px; color: var(--ink-2); line-height: 1.55; }
+.help a { color: var(--pen); }
 .foot a { color: inherit; }
 """
 
@@ -157,7 +173,7 @@ def shell(title, description, body, depth):
             f'<nav class="site-nav"><a href="{up}dsa/">DSA</a><a href="{up}cp/">Competitive programming</a>'
             f'<a href="https://github.com/bloomcode">GitHub</a></nav></header>\n'
             f'<main class="site">{body}<p class="foot">Original exercises, solutions and guides. '
-            f'<a href="https://github.com/bloomcode">Source on GitHub</a>; corrections welcome as issues or pull requests.</p></main>')
+            f'<a href="https://github.com/bloomcode">Starter repos on GitHub</a>; report mistakes as issues there.</p></main>')
     return document(frag, description)
 
 
@@ -184,23 +200,84 @@ def section_page(t, counts):
     return shell(f"{TRACKS[t]['name']} · BloomCode", TRACKS[t]["blurb"], body, 1)
 
 
-def home_page(counts_by_track):
+STAGES = (  # suggested order through the dsa parts: (label, title, part numbers, what it is for)
+    ("First", "The core toolkit", range(1, 6), "Most interview questions draw on these. Do the Core exercises, in order."),
+    ("Next", "Graphs and performance", range(6, 8), "Then go back for the Practice exercises in the chapters that felt hard, and start CP Part 1 "
+                          "in your language: fast input and output come first."),
+    ("Later", "Depth", range(8, 12), "Depth for senior and systems-heavy interviews. Save the Stretch exercises for here, and "
+                            "finish the CP track: the standard library toolbox and contest essentials."),
+)
+ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]
+
+
+def home_page(counts_by_track, dsa_track):
+    shorts = {c["n"]: c["short"] for c in dsa_track["chapters"]}
+    parts = {p["n"]: p for p in dsa_track["parts"]}
+    steps = [
+        ("Choose a track",
+         "<b>Data structures and algorithms</b> if you are preparing for coding interviews or want the fundamentals solid; "
+         "it runs in the order interviews build on. <b>Competitive programming</b> once the first DSA parts feel easy, or "
+         "now if you are already fluent and want contest speed in one language."),
+        ("Choose a language",
+         "The one you will interview in. DSA has the same exercises in Python, Java and Go, so you can switch later."),
+        ("Copy the starter",
+         "Open the starter repo for your track and language, click <b>Use this template</b> (not Fork), and clone your copy. "
+         "Run <code>make test EX=1.1</code>: it fails until you write exercise 1.1."),
+        ("Work chapter by chapter",
+         "Read the chapter in the concept guide, then each exercise in the workbook. Write it, run "
+         "<code>make test EX=3.2</code>, compare with the answer key, and push: <code>PROGRESS.md</code> ticks off every "
+         "exercise whose test passes."),
+    ]
+    start = "".join(f"<li><b>{h}</b><span>{b}</span></li>" for h, b in steps)
+    stages = []
+    for label, title, nums, why in STAGES:
+        chs = [n for k in nums for n in parts[k]["chapters"]]
+        names = "; ".join(f"Part {ROMAN[k - 1]}: {parts[k]['name']}" for k in nums)
+        stages.append(f'<section class="panel card-site"><span class="eyebrow">{label} · DSA chapters {chs[0]}–{chs[-1]}</span>'
+                      f"<h2>{title}</h2>"
+                      f"<p>{html.escape(', '.join(shorts[n] for n in chs))}.</p><p class=\"why\">{why}</p>"
+                      f'<p class="stats">{html.escape(names)}</p></section>')
     cards = []
     for t, info in TRACKS.items():
         c = counts_by_track[t]
-        langs = " · ".join(f"{LANGS[l]} {c[l][0]}" for l in LANGS)
-        extra = '<a href="dsa/guide/">Concept guide</a>' if t == "dsa" else ""
+        rows = "".join(
+            f'<li><b>{LANGS[l]}</b><span class="stats">{c[l][0]} exercises</span><span class="links">'
+            f'<a class="primary" href="{t}/{l}/workbook.html">Workbook</a><a href="{t}/{l}/answer-key.html">Answer key</a>'
+            f'<a href="https://github.com/bloomcode/{t}-{l}">Starter</a></span></li>' for l in LANGS)
+        guide = ('<div class="links"><a class="primary" href="dsa/guide/">Concept guide</a>'
+                 '<span class="stats">all languages, 33 chapters</span></div>') if t == "dsa" else ""
         cards.append(f'<section class="panel card-site"><span class="eyebrow">{info["short"]}</span><h2>{info["name"]}</h2>'
-                     f"<p>{info['blurb']}</p><p class=\"stats\">{langs} exercises</p>"
-                     f'<div class="links"><a class="primary" href="{t}/">Start {info["short"]}</a>{extra}</div></section>')
+                     f'<p>{info["blurb"]}</p>{guide}<ul class="langs">{rows}</ul>'
+                     f'<div class="links"><a href="{t}/">Track overview</a></div></section>')
     cards.append('<section class="panel card-site soon"><span class="eyebrow">Next</span><h2>More tracks</h2>'
                  "<p>System design, SQL and concurrency are candidates. Each new track gets the same shape: "
-                 "a solutions repo per language, a template starter and pages here.</p></section>")
+                 "exercises with tests in a template starter, a workbook and an answer key here.</p></section>")
+    help_items = [
+        ("Stuck on an exercise", "Read the guide chapter again, then reveal the answer key one solution at a time."),
+        ("Found a mistake", 'Open an issue on the starter repo you are using; the form asks for the exercise id. '
+                            'See the <a href="https://github.com/bloomcode/.github/blob/main/CONTRIBUTING.md">contributing guide</a>.'),
+        ("Get fixes and new exercises", "Your copy can pull from its starter; the steps are under <b>Getting updates</b> "
+                                         "in your starter's README."),
+        ("Your progress", "<code>PROGRESS.md</code> and the badge in your repo update on every push. Ticks in a workbook "
+                          "are saved in this browser only."),
+    ]
     body = ('<section class="panel hero-site"><span class="eyebrow">Interview preparation for working engineers</span>'
             "<h1>Practise the problems. <em>Run the tests.</em></h1>"
-            "<p>Each track is a set of original exercises with a test for every one. Copy a starter repo, write the code, "
-            "and watch your progress fill in on every push. Workbooks, answer keys and guides live here.</p></section>"
-            f'<div class="cards-site">{"".join(cards)}</div>')
+            "<p>Original exercises in Python, Java and Go, each with its own test. You solve them in your own copy of a "
+            "starter repo; the tests tell you when you are right, and these pages explain the ideas and show worked "
+            "solutions.</p>"
+            '<div class="links"><a class="primary" href="#start">Start here</a><a href="dsa/guide/">Concept guide</a>'
+            '<a href="#tracks">All workbooks and starters</a></div></section>'
+            f'<section class="panel" id="start"><h2 class="sec">Start here</h2><ol class="start">{start}</ol></section>'
+            '<section class="panel"><h2 class="sec">What to do first, and later</h2>'
+            "<p class=\"lede\">Each exercise is <b>Core</b> (everyone should do it), <b>Practice</b> (consolidates the "
+            "chapter) or <b>Stretch</b> (harder, or combines ideas). Inside a chapter, go in order: later exercises "
+            "reuse earlier ones.</p>"
+            f'<div class="cards-site">{"".join(stages)}</div></section>'
+            f'<div class="cards-site" id="tracks">{"".join(cards)}</div>'
+            '<section class="panel"><h2 class="sec">Help</h2><ul class="help">'
+            + "".join(f"<li><b>{h}</b><span>{b}</span></li>" for h, b in help_items) +
+            "</ul></section>")
     return shell("BloomCode · Interview practice with tests", "Original interview-practice exercises with tests, in Python, Java and Go.", body, 0)
 
 
@@ -230,7 +307,7 @@ def main():
         (out / t / "index.html").write_text(section_page(t, counts[t]))
     (out / "dsa/guide").mkdir(parents=True, exist_ok=True)
     (out / "dsa/guide/index.html").write_text(guide_page(dsa_track))
-    (out / "index.html").write_text(home_page(counts))
+    (out / "index.html").write_text(home_page(counts, dsa_track))
     (out / "404.html").write_text(shell("Not found · BloomCode", "", '<section class="panel hero-site"><h1>Not <em>found</em></h1>'
                                         '<p>That page does not exist. Start from the <a href="/">home page</a>.</p></section>', 0))
     (out / ".nojekyll").write_text("")

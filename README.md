@@ -23,7 +23,7 @@ It fails on a JavaScript error, a page that scrolls sideways at phone width, a g
 
 ## Deploy
 
-`.github/workflows/pages.yml` clones the solutions repos, builds, runs the render check and deploys to GitHub Pages. It runs on every push to main, daily, and by hand from the Actions tab. Pull requests build and check without deploying.
+`.github/workflows/pages.yml` checks out the six solutions repos (private, read with deploy keys), builds, runs the render check and deploys to GitHub Pages. It runs on every push to main, daily, and by hand from the Actions tab. Pull requests build and check without deploying.
 
 ## Layout
 
