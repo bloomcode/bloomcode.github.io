@@ -25,7 +25,6 @@
 .levels-row b { font: 800 22px/1 var(--display); font-stretch: 112%; color: var(--ink); margin-right: 6px; font-variant-numeric: tabular-nums; }
 .sync { margin-top: 14px; font: 500 12px var(--mono); color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
 .sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); display: inline-block; }
-.sync.account i { background: var(--o1); }
 
 /* Array playground */
 .play { background: var(--sheet-2); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; min-width: 0; }
@@ -213,25 +212,9 @@ let done = new Set();
 const levels = new Set();
 let hideDone = false;
 
-/* ---------- progress storage: account when available, else this browser ---------- */
-const store = { ref: null, dirty: false, writing: Promise.resolve(), timer: 0 };
+/* ---------- progress storage: this browser ---------- */
 try { JSON.parse(localStorage.getItem("/*STORE_KEY*/.done") || "[]").forEach(id => done.add(id)); } catch {}
 const saveLocal = () => { try { localStorage.setItem("/*STORE_KEY*/.done", JSON.stringify([...done])); } catch {} };
-function setSync(account) {
-  $("#sync").classList.toggle("account", account);
-  $("#sync span").textContent = account ? "Ticks are saved to your Claude account and follow you across devices" : "Ticks are saved in this browser";
-}
-function queueSave() {
-  saveLocal();
-  if (!store.ref) return;
-  store.dirty = true;
-  clearTimeout(store.timer);
-  store.timer = setTimeout(() => {
-    const body = { done: [...done].sort(), updated: new Date().toISOString() };
-    store.writing = store.writing.then(() => store.ref.set(body)).then(() => { store.dirty = false; })
-      .catch(() => { store.ref = null; store.dirty = false; setSync(false); });
-  }, 700);
-}
 
 /* ---------- slicing lab ---------- */
 const WORD = "competitive", L = WORD.length;
@@ -359,7 +342,7 @@ document.addEventListener("click", ev => {
   const finished = done.has(id) && chDone(ch) === chTotal(ch);
   paintAll(finished ? ch : undefined);
   if (finished) toast(`Chapter ${ch} complete`);
-  queueSave();
+  saveLocal();
 });
 
 function applyFilter() {
