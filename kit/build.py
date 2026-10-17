@@ -61,6 +61,10 @@ def read(rel):
     return (KIT / rel).read_text()
 
 
+# Page views go to GoatCounter (no cookies, no personal data): https://bloomcode.goatcounter.com
+ANALYTICS = '<script data-goatcounter="https://bloomcode.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>\n'
+
+
 def document(fragment, description=""):
     """The templates are page fragments (title, links, style, then the body). Wrap one as a full document."""
     split = fragment.index("\n<header")
@@ -69,7 +73,7 @@ def document(fragment, description=""):
     return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
             f"{meta}{ICON_LINKS}{head.strip()}\n<style>[hidden]{{display:none!important}}img{{max-width:100%}}</style>\n"
-            f"</head>\n<body>\n{body.strip()}\n</body>\n</html>\n")
+            f"</head>\n<body>\n{body.strip()}\n{ANALYTICS}</body>\n</html>\n")
 
 
 def export(repo):
