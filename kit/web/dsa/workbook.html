@@ -189,13 +189,13 @@
           <button class="op" data-op="delEnd" type="button">Delete at end</button>
           <button class="op" data-op="delMid" type="button">Delete at index 2</button>
         </div>
-        <div class="op-out" id="opOut"><span>Press an operation to watch every step. It is exercises 1.2 to 1.12 in motion.</span></div>
+        <div class="op-out" id="opOut"><span>Press an operation to watch every step. It is exercises 21.2 to 21.12 in motion.</span></div>
         <div class="legend"><span style="--c:var(--o1)">read</span><span style="--c:var(--on)">compare</span><span style="--c:var(--pen)">shift</span><span style="--c:var(--on2)">write</span></div>
       </div>
     </section>
 
     <section class="panel">
-      <div class="sec-head"><h2>Bloom filter playground</h2><p>Chapter 33: a set that answers “definitely not” or “probably yes” in a few bits per item.</p></div>
+      <div class="sec-head"><h2>Bloom filter playground</h2><p>Chapter 83: a set that answers “definitely not” or “probably yes” in a few bits per item.</p></div>
       <div class="play" id="bfPlay">
         <div class="play-head"><span class="play-title">Bloom filter playground</span><span class="steps-badge" id="bfStats">0 of 32 bits set</span></div>
         <div class="bits" id="bits"></div>
@@ -206,7 +206,7 @@
           <button class="op" type="button" data-bf="check">Check</button>
         </form>
         <div class="presets" id="bfPresets"></div>
-        <div class="op-out" id="bfOut"><span>Add a few words, then check one you never added. Exercises 33.1 to 33.6 in motion: m = 32 bits, k = 3 hashes.</span></div>
+        <div class="op-out" id="bfOut"><span>Add a few words, then check one you never added. Exercises 83.10 to 83.15 in motion: m = 32 bits, k = 3 hashes.</span></div>
         <div class="bf-added" id="bfAdded"></div>
       </div>
     </section>
@@ -235,7 +235,6 @@
 <script>
 /*COMMON_JS*/
 const KEY_URL = "/*KEY_URL*/";
-const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
 const TOTAL = DATA.exercises.length;
 let done = new Set();
 const levels = new Set();
@@ -313,7 +312,7 @@ $$("[data-op]").forEach(b => b.addEventListener("click", () => run(b.dataset.op)
 /* ---------- Bloom filter playground ---------- */
 const BF_M = 32, BF_K = 3;
 let bfBits = new Array(BF_M).fill(0), bfWords = [], bfBusy = false;
-// Two 32-bit FNV-1a variants combined by double hashing, like 33.1 (a demo hash, not SHA-256).
+// Two 32-bit FNV-1a variants combined by double hashing, like 83.10 (a demo hash, not SHA-256).
 function fnv(str, seed) {
   let h = (2166136261 ^ seed) >>> 0;
   for (const ch of str) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; }
@@ -388,7 +387,7 @@ $("#heat").innerHTML = `<thead><tr><th>Structure</th><th>Read</th><th>Search</th
   HEAT.map(([name, ch, cells]) => `<tr><td class="name"><a href="#ch-${ch}">${name}</a><small>Chapter ${ch}</small></td>${cells.map(([c, t, s]) =>
     `<td><div class="tile ${c}"><b>${t}</b>${s ? `<span>${s}</span>` : ""}</div></td>`).join("")}</tr>`).join("") + "</tbody>";
 const HEAT2 = [
-  ["Plain BST (Chapter 15)", 25, [["on", "O(N)", "sorted input makes a list"], ["on", "O(N)", "worst case"], ["on", "O(N)", "worst case"], ["on", "O(N)", "one node per key"]]],
+  ["Plain BST (Chapter 51)", 25, [["on", "O(N)", "sorted input makes a list"], ["on", "O(N)", "worst case"], ["on", "O(N)", "worst case"], ["on", "O(N)", "one node per key"]]],
   ["Red-black tree", 25, [["ologn", "O(log N)", "guaranteed"], ["ologn", "O(log N)", "at most 2 rotations"], ["ologn", "O(log N)", "at most 3 rotations"], ["on", "O(N)", "plus 1 colour bit"]]],
   ["Treap", 26, [["ologn", "O(log N)", "expected"], ["ologn", "O(log N)", "expected"], ["ologn", "O(log N)", "expected"], ["on", "O(N)", "plus a priority"]]],
   ["B-tree", 27, [["ologn", "O(log_B N)", "disk reads"], ["ologn", "O(log_B N)", "disk reads"], ["ologn", "O(log_B N)", "disk reads"], ["on", "O(N / B)", "blocks"]]],
@@ -403,7 +402,7 @@ $("#heat2").innerHTML = `<thead><tr><th>Structure</th><th>Search</th><th>Insert<
 
 
 /* ---------- roadmap, chapters, cards ---------- */
-$("#road").innerHTML = DATA.parts.map(p => `<li><a href="#ch-${p.chs[0]}"><span class="pn">${ROMAN[p.n - 1]}</span><span class="pname">${esc(p.name)}</span>
+$("#road").innerHTML = DATA.parts.map(p => `<li><a href="#ch-${p.chs[0]}"><span class="pn">${p.n}</span><span class="pname">${esc(p.name)}</span>
   <span class="pchs">Ch ${p.chs[0]}${p.chs.length > 1 ? "–" + p.chs.at(-1) : ""}</span><span class="pcount" data-pcount="${p.n}"></span><span class="pbar"><i data-pbar="${p.n}"></i></span></a></li>`).join("");
 const counts = { Core: 0, Practice: 0, Stretch: 0 };
 DATA.exercises.forEach(e => counts[e.level]++);

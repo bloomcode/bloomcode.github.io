@@ -72,7 +72,7 @@
     </a>
     <label class="search" for="q">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-      <input id="q" type="search" placeholder="Search solutions: binary, trie, 14.6…" autocomplete="off">
+      <input id="q" type="search" placeholder="Search solutions: binary, trie, 23.6…" autocomplete="off">
     </label>
     <div class="chips" role="group" aria-label="Filter by level">
       <button class="chip" data-level="Core" aria-pressed="false"><span class="dot" style="background:var(--core)"></span>Core</button>
@@ -113,7 +113,7 @@ const WORKBOOK_URL = "/*WORKBOOK_URL*/";
 const LANG_NAME = { python: "Python", java: "Java", go: "Go" }[DATA.lang];
 $("#solCount").textContent = DATA.exercises.length;
 $("#chCount").textContent = DATA.chapters.length;
-$("#q").placeholder = `Search ${DATA.exercises.length} solutions: binary, trie, 14.6…`;
+$("#q").placeholder = `Search ${DATA.exercises.length} solutions: binary, trie, 23.6…`;
 const revealed = new Set();
 const levels = new Set();
 let showAll = false;

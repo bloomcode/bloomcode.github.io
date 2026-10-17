@@ -1,6 +1,5 @@
 // Renders the guide from GUIDE (content) and LINKS (workbook URLs per language).
 const LANGS = [["python", "Python"], ["java", "Java"], ["go", "Go"]];
-const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
 
 function practiceLinks(ch) {
   return LANGS.filter(([k]) => LINKS[k]).map(([k, name]) => `<a class="lang-link" href="${esc(LINKS[k])}#ch-${ch}" target="_blank" rel="noopener">${name} workbook ↗</a>`).join("");
@@ -22,23 +21,29 @@ function renderPage() {
     <div class="howto">${GUIDE.heroPoints.map(([b, s]) => `<div><b>${esc(b)}</b><span>${rich(s)}</span></div>`).join("")}</div>
   </section>`;
 
+  // A chapter holds one or more topics; each topic has its own prose, visualizer, costs and pseudocode.
+  const topicHtml = (t, many) => `
+    <div class="ch-grid">
+      ${many ? `<h3 class="topic-title">${esc(t.title)}</h3>` : ""}
+      <div class="prose">${t.body.map(p => `<p>${rich(p)}</p>`).join("")}</div>
+      <div class="viz-host" data-widget="${esc(t.widget)}"><div class="viz"><p class="viz-note">Loading the visualizer…</p></div></div>
+      <div class="two">
+        <div class="box"><h3>Mental model</h3><ul class="model">${t.model.map(m => `<li>${rich(m)}</li>`).join("")}</ul></div>
+        <div class="box"><h3>What it costs</h3><table class="costs">${t.costs.map(([op, o, why]) => `<tr><td>${rich(op)}<span class="why">${rich(why)}</span></td><td>${cx(o)}</td></tr>`).join("")}</table></div>
+      </div>
+      <div class="pseudo-wrap"><span class="pseudo-tag">pseudocode</span><pre class="pseudo">${highlight(t.pseudo)}</pre></div>
+      <div class="pitfall"><b class="tag">Watch out</b><span>${rich(t.pitfall)}</span></div>
+    </div>`;
   const chapters = GUIDE.chapters.map(c => `
-  <section class="panel chapter" id="ch-${c.ch}" data-ch="${c.ch}" data-text="${esc((c.title + " " + c.short + " " + c.idea + " " + c.body.join(" ")).toLowerCase())}">
+  <section class="panel chapter" id="ch-${c.ch}" data-ch="${c.ch}" data-text="${esc((c.title + " " + c.short + " " + c.idea + " " + c.topics.map(t => t.title + " " + t.body.join(" ")).join(" ")).toLowerCase())}">
     <div class="chapter-head">
       <div class="chapter-num">${String(c.ch).padStart(2, "0")}</div>
       <h2 class="chapter-title">${esc(c.title)}</h2>
       <div class="chapter-focus">${rich(c.idea)}</div>
       <div class="chapter-meta"><span class="file-chip" title="Exercises in the workbooks">Ex ${esc(c.ex)}</span></div>
     </div>
+    ${c.topics.map(t => topicHtml(t, c.topics.length > 1)).join("")}
     <div class="ch-grid">
-      <div class="prose">${c.body.map(p => `<p>${rich(p)}</p>`).join("")}</div>
-      <div class="viz-host" data-widget="${esc(c.widget)}"><div class="viz"><p class="viz-note">Loading the visualizer…</p></div></div>
-      <div class="two">
-        <div class="box"><h3>Mental model</h3><ul class="model">${c.model.map(m => `<li>${rich(m)}</li>`).join("")}</ul></div>
-        <div class="box"><h3>What it costs</h3><table class="costs">${c.costs.map(([op, o, why]) => `<tr><td>${rich(op)}<span class="why">${rich(why)}</span></td><td>${cx(o)}</td></tr>`).join("")}</table></div>
-      </div>
-      <div class="pseudo-wrap"><span class="pseudo-tag">pseudocode</span><pre class="pseudo">${highlight(c.pseudo)}</pre></div>
-      <div class="pitfall"><b class="tag">Watch out</b><span>${rich(c.pitfall)}</span></div>
       <div class="practice"><span class="eyebrow">Practice</span><span>Exercises <code>${esc(c.ex)}</code> in</span>${practiceLinks(c.ch)}</div>
     </div>
   </section>`).join("");
@@ -54,7 +59,7 @@ function renderPage() {
 
   // Rail
   const rail = $(".rail");
-  rail.innerHTML = GUIDE.parts.map((p, i) => `<div class="rail-part">Part ${ROMAN[i]} · ${esc(p[0])}</div>` + p[1].map(ch => {
+  rail.innerHTML = GUIDE.parts.map((p, i) => `<div class="rail-part">Area ${i + 1} · ${esc(p[0])}</div>` + p[1].map(ch => {
     const c = GUIDE.chapters.find(x => x.ch === ch);
     return `<a href="#ch-${ch}" data-ch="${ch}"><span class="rail-num">${String(ch).padStart(2, "0")}</span><span class="rail-name">${esc(c.short)}</span><span class="rail-count"></span></a>`;
   }).join("")).join("") + `<div class="rail-part">At a glance</div>` + GUIDE.summaries.map((s, i) => `<a href="#summary-${i + 1}" data-ch="summary-${i + 1}"><span class="rail-num">∑</span><span class="rail-name">${esc(s.title)}</span><span class="rail-count"></span></a>`).join("");
