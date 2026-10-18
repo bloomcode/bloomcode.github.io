@@ -252,12 +252,12 @@ def section_page(t, counts, ids):
 
 
 STAGES = (  # suggested order through the dsa chapters: (label, title, chapters in order, what it is for)
-    ("First", "The core toolkit", (11, 21, 22, 24, 41, 31, 71, 32, 23, 51, 52),
+    ("First", "The core toolkit", (11, 21, 25, 26, 22, 24, 41, 31, 71, 32, 23, 51, 56, 52),
      "Most interview questions draw on these. Do the Core exercises, in this order."),
-    ("Next", "Graphs, design and performance", (61, 62, 72, 73, 53, 12, 13),
+    ("Next", "Graphs, design and performance", (61, 64, 62, 63, 72, 75, 73, 53, 27, 12, 13),
      "Then go back for the Practice exercises in the chapters that felt hard, and start CP Part 1 in your language: "
      "fast input and output come first."),
-    ("Later", "Depth", (54, 55, 42, 43, 74, 81, 82, 83),
+    ("Later", "Depth", (54, 55, 33, 42, 43, 74, 81, 82, 83),
      "Depth for senior and systems-heavy interviews. Save the Stretch exercises for here, and finish the CP track: "
      "the standard library toolbox and contest essentials."),
 )
@@ -301,7 +301,7 @@ def home_page(counts_by_track, dsa_track, ids):
                      f'<p>{info["blurb"]}</p>{guide}<ul class="langs">{rows}</ul>'
                      f'<div class="links"><a href="{t}/">Track overview</a></div></section>')
     cards.append('<section class="panel card-site soon"><span class="eyebrow">Next</span><h2>More tracks</h2>'
-                 "<p>System design, SQL and concurrency are candidates. Each new track gets the same shape: "
+                 "<p>System design and SQL are candidates. Each new track gets the same shape: "
                  "exercises with tests in a template starter, a workbook and an answer key here.</p></section>")
     help_items = [
         ("Stuck on an exercise", "Read the guide chapter again, then reveal the answer key one solution at a time."),
