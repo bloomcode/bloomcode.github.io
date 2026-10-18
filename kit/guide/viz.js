@@ -1,6 +1,6 @@
-// Visualizers for chapters 1-20. Every frame is produced by running the real algorithm on the shown data.
+// Visualizers for the concept guide. Every frame is produced by running the real algorithm on the shown data.
 
-/* ---------- Ch 1: array operations ---------- */
+/* ---------- Ch 21: array operations ---------- */
 W.arrayOps = host => stepper(host, {
   title: "Array operations, counted",
   inputs: `<label>Operation <select name="op">
@@ -52,7 +52,7 @@ W.arrayOps = host => stepper(host, {
   render(f, stage) { stage.innerHTML = cells(f.arr, { marks: f.marks, cap: 8 }); },
 });
 
-/* ---------- Ch 2: linear vs binary search ---------- */
+/* ---------- Ch 22: linear vs binary search ---------- */
 W.binarySearch = host => stepper(host, {
   title: "Linear search vs binary search",
   inputs: `<label>Find <input type="number" name="t" value="45"></label><span class="viz-note">in 15 sorted values</span>`,
@@ -106,7 +106,7 @@ W.binarySearch = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 3: growth ladder ---------- */
+/* ---------- Ch 11: growth ladder ---------- */
 W.growth = host => {
   host.classList.add("viz");
   const Ns = [1, 2, 4, 8, 16, 32, 64, 128, 1024, 4096, 65536, 1048576, 1e9];
@@ -264,18 +264,18 @@ W.quicksort = host => stepper(host, {
   render: sortRender,
 });
 
-/* ---------- Ch 7: classify everyday code ---------- */
+/* ---------- Ch 11: classify everyday code ---------- */
 W.classify = host => {
   host.classList.add("viz");
   const Q = [
-    ["Mean of the even numbers", "total = 0; count = 0\nfor each n in nums:\n    if n is even: total += n; count += 1\nreturn total / count", "O(N)", "One loop over the N numbers; the work inside is constant."],
-    ["Every two-letter word", "for each a in letters:\n    for each b in letters:\n        append a + b", "O(N^2)", "N choices for the first letter times N for the second."],
-    ["Sample an array", "return [arr[0], arr[length / 2], arr[length - 1]]", "O(1)", "Three reads, however long the array is."],
-    ["Count the ones in nested arrays", "for each row in rows:\n    for each x in row:\n        if x == 1: count += 1", "O(N)", "Nested loops, but every number is visited once. N = the total count of numbers."],
-    ["Every password of length N", "words = [\"\"]\nrepeat N times:\n    words = [w + c for each w in words for each c in a..z]", "O(26^N)", "Each extra character multiplies the work by 26."],
+    ["Running balance", "balance = 0\nfor each change in changes:\n    if balance + change >= 0: balance += change\nreturn balance", "O(N)", "One loop over the N changes; the work inside is constant."],
+    ["Every pairing from a list", "for i from 0 to N - 1:\n    for j from i + 1 to N - 1:\n        append names[i] + \"-\" + names[j]", "O(N^2)", "About N²/2 pairings, and Big O drops the half."],
+    ["Busiest of 24 hourly counters", "best = 0\nfor hour from 0 to 23:\n    if counts[hour] > counts[best]: best = hour", "O(1)", "Always 24 steps, however many entries were counted."],
+    ["Vowels across a document", "for each line in lines:\n    for each ch in line:\n        if ch is a vowel: count += 1", "O(N)", "Nested loops, but every character is visited once. N = the total number of characters."],
+    ["Every setting of N switches", "settings = [\"\"]\nrepeat N times:\n    settings = [s + b for each s in settings for each b in \"01\"]", "O(2^N)", "Each extra switch doubles the work."],
     ["Halve until one", "while n > 1:\n    n = n / 2\n    steps += 1", "O(log N)", "The loop runs once per halving."],
   ];
-  const opts = ["O(1)", "O(log N)", "O(N)", "O(N^2)", "O(26^N)"];
+  const opts = ["O(1)", "O(log N)", "O(N)", "O(N^2)", "O(2^N)"];
   host.innerHTML = `<div class="viz-head"><span class="viz-title">Name the Big O</span><span class="viz-badge" data-score>0 of ${Q.length}</span></div>
     <div class="quiz">${Q.map((q, i) => `<div class="qcard" data-q="${i}"><b>${esc(q[0])}</b><pre>${esc(q[1])}</pre>
       <div class="qopts">${opts.map(o => `<button class="qopt" data-a="${o}">${esc(prettyO(o))}</button>`).join("")}</div><p class="qwhy" hidden></p></div>`).join("")}</div>`;
@@ -293,7 +293,7 @@ W.classify = host => {
   });
 };
 
-/* ---------- Ch 8: hash table with chaining ---------- */
+/* ---------- Ch 41: hash table with chaining ---------- */
 W.hashTable = host => {
   const M = 7;
   const hash = k => [...k].reduce((s, c) => s + c.charCodeAt(0), 0);
@@ -303,7 +303,7 @@ W.hashTable = host => {
     title: "A hash table with 7 buckets", speed: 800, enterOp: "find",
     inputs: `<label>Key <input type="text" name="k" value="tac" maxlength="12" autocomplete="off"></label>
       <button class="vbtn pen" data-op="put">Insert</button><button class="vbtn" data-op="find">Look up</button><button class="vbtn" data-op="reset">Reset</button>`,
-    note: "Toy hash function: add up the character codes, then take the remainder mod 7. Anagrams always collide, which Chapter 30 fixes.",
+    note: "Toy hash function: add up the character codes, then take the remainder mod 7. Anagrams always collide, which Chapter 42 fixes.",
     build(host, op) {
       if (op === "reset") { base = Array.from({ length: M }, () => []); for (const w of ["cat", "dog", "emu", "act", "yak"]) base[hash(w) % M].push(w); }
       const t = base.map(b => b.slice());
@@ -333,9 +333,9 @@ W.hashTable = host => {
   });
 };
 
-/* ---------- Ch 9: bracket linter with a stack ---------- */
+/* ---------- Ch 24: matching brackets with a stack ---------- */
 W.brackets = host => stepper(host, {
-  title: "Bracket linter with a stack", speed: 600,
+  title: "Matching brackets with a stack", speed: 600,
   inputs: `<label>Code <input type="text" name="s" value="(x = [1, {a: 2}])" style="width:210px" autocomplete="off"></label><button class="vbtn pen" data-op="run">Run</button>`,
   note: "Try `(a[0)]` or `{ (x) ` to see the two kinds of error.",
   build(host) {
@@ -363,7 +363,7 @@ W.brackets = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 10: the call stack ---------- */
+/* ---------- Ch 71: the call stack ---------- */
 W.callStack = host => stepper(host, {
   title: "factorial(n) on the call stack", speed: 700,
   inputs: `<label>n <input type="number" name="n" value="4" min="1" max="7"></label><button class="vbtn pen" data-op="run">Run</button>`,
@@ -387,7 +387,7 @@ W.callStack = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 11: subsets call tree ---------- */
+/* ---------- Ch 71: subsets call tree ---------- */
 W.subsetsTree = host => stepper(host, {
   title: "Every subset: skip it or take it", speed: 450,
   inputs: `<label>Items <input type="text" name="s" value="abc" maxlength="4" style="width:80px" autocomplete="off"></label><button class="vbtn pen" data-op="run">Run</button>`,
@@ -423,7 +423,7 @@ W.subsetsTree = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 12: fib call tree, with and without memo ---------- */
+/* ---------- Ch 72: fib call tree, with and without memo ---------- */
 W.fibTree = host => stepper(host, {
   title: "fib(n): the call tree", speed: 380,
   inputs: `<label>n <select name="n">${[3, 4, 5, 6, 7].map(n => `<option ${n === 5 ? "selected" : ""}>${n}</option>`).join("")}</select></label>
@@ -471,7 +471,7 @@ W.fibTree = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 14: linked list ---------- */
+/* ---------- Ch 23: linked list ---------- */
 W.linkedList = host => stepper(host, {
   title: "Linked list operations, counted", speed: 750,
   inputs: `<label>Operation <select name="op"><option value="read">Read index 3</option><option value="ins0">Insert at the start</option><option value="ins2" selected>Insert at index 2</option><option value="del2">Delete at index 2</option><option value="del0">Delete at the start</option></select></label>
@@ -507,7 +507,7 @@ W.linkedList = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 15: binary search tree ---------- */
+/* ---------- Ch 51: binary search tree ---------- */
 const bstFrom = keys => { let r = null; const ins = (n, k) => !n ? { k, l: null, r: null } : (k < n.k ? (n.l = ins(n.l, k)) : k > n.k ? (n.r = ins(n.r, k)) : 0, n); keys.forEach(k => r = ins(r, k)); return r; };
 const cloneT = n => n ? { k: n.k, l: cloneT(n.l), r: cloneT(n.r), sub: n.sub, p: n.p } : null;
 function paintT(root, marks = {}, edges = {}) { const c = cloneT(root); (function p(n) { if (!n) return; n.cls = marks[n.k] || ""; n.ecls = edges[n.k] || ""; p(n.l); p(n.r); })(c); return c; }
@@ -566,7 +566,7 @@ W.bst = host => {
   });
 };
 
-/* ---------- Ch 16: max-heap ---------- */
+/* ---------- Ch 52: max-heap ---------- */
 W.heap = host => {
   let base = [100, 88, 25, 87, 16, 8, 12, 86, 50, 2, 15, 3];
   const toTree = (a, marks) => { const mk = i => i < a.length ? { k: a[i], l: mk(2 * i + 1), r: mk(2 * i + 2), cls: marks[i] || "" } : null; return mk(0); };
@@ -618,9 +618,9 @@ W.heap = host => {
   });
 };
 
-/* ---------- Ch 17: trie ---------- */
+/* ---------- Ch 53: trie ---------- */
 W.trie = host => {
-  const WORDS = ["ace", "act", "bad", "bake", "bat", "cab", "cat"];
+  const WORDS = ["pin", "pine", "pint", "pit", "sun", "sung", "sunk"];
   let words = WORDS.slice();
   const build = ws => { const root = { ch: "", kids: {}, end: false }; for (const w of ws) { let n = root; for (const c of w) n = n.kids[c] ||= { ch: c, kids: {}, end: false }; n.end = true; } return root; };
   const toDraw = (n, marks, prefix = "") => {
@@ -630,8 +630,8 @@ W.trie = host => {
   };
   return stepper(host, {
     title: "Trie: insert and autocomplete", speed: 650, enterOp: "complete",
-    inputs: `<label>Text <input type="text" name="w" value="ba" maxlength="8" autocomplete="off"></label><button class="vbtn" data-op="complete">Autocomplete</button><button class="vbtn pen" data-op="insert">Insert word</button><button class="vbtn" data-op="reset">Reset</button>`,
-    note: "A `*` child marks the end of a word, so \"ba\" (a prefix) and \"bad\" (a word) are told apart.",
+    inputs: `<label>Text <input type="text" name="w" value="pi" maxlength="8" autocomplete="off"></label><button class="vbtn" data-op="complete">Autocomplete</button><button class="vbtn pen" data-op="insert">Insert word</button><button class="vbtn" data-op="reset">Reset</button>`,
+    note: "A `*` child marks the end of a word, so \"pi\" (a prefix) and \"pin\" (a word) are told apart.",
     build(host, op) {
       if (op === "reset") words = WORDS.slice();
       const root = build(words);
@@ -668,40 +668,41 @@ W.trie = host => {
   });
 };
 
-/* ---------- Ch 18: graph traversal and Dijkstra ---------- */
-W.graph = host => {
-  const N = [{ id: "A", label: "Atl", x: 60, y: 140 }, { id: "B", label: "Bos", x: 190, y: 40 }, { id: "C", label: "Chi", x: 360, y: 70 }, { id: "D", label: "Den", x: 200, y: 215 }, { id: "E", label: "ElP", x: 360, y: 215 }];
-  const NAMES = { A: "Atlanta", B: "Boston", C: "Chicago", D: "Denver", E: "El Paso" };
-  const E = [["A", "B", 100], ["A", "D", 160], ["B", "C", 120], ["B", "D", 180], ["C", "E", 80], ["D", "C", 40], ["D", "E", 140], ["E", "B", 100]];
+/* ---------- Ch 61: graph traversal and Dijkstra ---------- */
+const graphWidget = (host, first) => {
+  const N = [{ id: "A", label: "Ame", x: 60, y: 130 }, { id: "B", label: "Ber", x: 200, y: 40 }, { id: "C", label: "Cor", x: 200, y: 215 }, { id: "D", label: "Dov", x: 360, y: 40 }, { id: "E", label: "Ede", x: 360, y: 215 }];
+  const NAMES = { A: "Ames", B: "Bern", C: "Cork", D: "Dover", E: "Eden" };
+  const E = [["A", "B", 4], ["A", "C", 2], ["B", "D", 5], ["C", "B", 1], ["C", "D", 8], ["C", "E", 10], ["D", "E", 2]];
+  const ALGS = [["dijkstra", "Dijkstra (fastest route)"], ["bfs", "Breadth-first"], ["dfs", "Depth-first"]].sort((a, b) => (b[0] === first) - (a[0] === first));
   const adj = {}; N.forEach(n => adj[n.id] = []); E.forEach(([a, b, w]) => adj[a].push([b, w]));
   return stepper(host, {
-    title: "Graph traversal and cheapest paths", speed: 850,
-    inputs: `<label>Algorithm <select name="alg"><option value="dijkstra">Dijkstra (cheapest cost)</option><option value="bfs">Breadth-first</option><option value="dfs">Depth-first</option></select></label>
+    title: first === "dijkstra" ? "Shortest paths by travel time" : "Graph traversal", speed: 850,
+    inputs: `<label>Algorithm <select name="alg">${ALGS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></label>
       <label>Start <select name="s">${N.map(n => `<option value="${n.id}">${NAMES[n.id]}</option>`).join("")}</select></label><button class="vbtn pen" data-op="run">Run</button>`,
-    note: "One-way flights with prices. Traversals follow the arrows; Dijkstra adds up the prices.",
+    note: "One-way roads with travel minutes. Traversals follow the arrows; Dijkstra adds up the minutes.",
     build(host) {
-      const alg = val(host, "alg") || "dijkstra", s = val(host, "s") || "A", F = [];
+      const alg = val(host, "alg") || first, s = val(host, "s") || "A", F = [];
       const nm = id => NAMES[id];
       if (alg === "dijkstra") {
         const cost = { [s]: 0 }, prev = {}, done = new Set();
-        F.push({ alg, cost: { ...cost }, done: [], cur: null, msg: `Cheapest known cost: ${nm(s)} = 0, everything else unknown (∞).` });
+        F.push({ alg, cost: { ...cost }, done: [], cur: null, msg: `Fastest known time: ${nm(s)} = 0, everything else unknown (∞).` });
         for (;;) {
           let cur = null;
           for (const id in cost) if (!done.has(id) && (cur === null || cost[id] < cost[cur])) cur = id;
           if (cur === null) break;
           done.add(cur);
-          F.push({ alg, cost: { ...cost }, done: [...done], cur, prev: { ...prev }, msg: `Visit the cheapest unvisited city: **${nm(cur)}** (${cost[cur]}). Its cost is now final.` });
+          F.push({ alg, cost: { ...cost }, done: [...done], cur, prev: { ...prev }, msg: `Settle the nearest unsettled town: **${nm(cur)}** (${cost[cur]} min). Its time is now final.` });
           for (const [nb, w] of adj[cur]) {
             if (done.has(nb)) continue;
             const c = cost[cur] + w, better = !(nb in cost) || c < cost[nb];
             const old = nb in cost ? cost[nb] : "∞";
             if (better) { cost[nb] = c; prev[nb] = cur; }
-            F.push({ alg, cost: { ...cost }, done: [...done], cur, edge: [cur, nb], prev: { ...prev }, upd: better ? nb : null, msg: `${nm(cur)} → ${nm(nb)} costs ${cost[cur]} + ${w} = ${c}. ${better ? `Cheaper than ${old}: update.` : `Not cheaper than ${old}: keep it.`}` });
+            F.push({ alg, cost: { ...cost }, done: [...done], cur, edge: [cur, nb], prev: { ...prev }, upd: better ? nb : null, msg: `${nm(cur)} → ${nm(nb)} costs ${cost[cur]} + ${w} = ${c}. ${better ? `Faster than ${old}: update.` : `Not cheaper than ${old}: keep it.`}` });
           }
         }
         const path = t => { const p = [t]; while (p[0] !== s && prev[p[0]]) p.unshift(prev[p[0]]); return p[0] === s ? p : null; };
         const pe = path("E");
-        F.push({ alg, cost: { ...cost }, done: [...done], prev: { ...prev }, path: pe, msg: pe && s !== "E" ? `Done. Cheapest ${nm(s)} → El Paso: **${cost.E}**, via ${pe.map(nm).join(" → ")}.` : `Done: every reachable city has its cheapest cost.` });
+        F.push({ alg, cost: { ...cost }, done: [...done], prev: { ...prev }, path: pe, msg: pe && s !== "E" ? `Done. Fastest ${nm(s)} → Eden: **${cost.E} min**, via ${pe.map(nm).join(" → ")}.` : `Done: every reachable town has its fastest cost.` });
         return F;
       }
       const seen = new Set([s]), order = [], box = [s];
@@ -735,17 +736,19 @@ W.graph = host => {
         if (f.edge && f.edge[0] === a && f.edge[1] === b) cls = "hl";
         else if (f.path) { const i = f.path.indexOf(a); if (i >= 0 && f.path[i + 1] === b) cls = "ok"; }
         else if (f.prev && f.prev[b] === a) cls = "ok";
-        return { a, b, w: f.alg === "dijkstra" ? w : null, cls, bend: (a === "E" && b === "B") ? 30 : (a === "B" && b === "D") ? -18 : 0 };
+        return { a, b, w: f.alg === "dijkstra" ? w : null, cls, bend: 0 };
       });
       let side;
-      if (f.alg === "dijkstra") side = `<table class="vtable"><tr><th>City</th><th>Cheapest</th><th>Via</th></tr>${N.map(n => `<tr class="${n.id === f.cur ? "hl" : f.done.includes(n.id) ? "ok" : ""}"><td class="l">${NAMES[n.id]}</td><td>${n.id in f.cost ? f.cost[n.id] : "∞"}</td><td class="l">${f.prev?.[n.id] ? NAMES[f.prev[n.id]] : ""}</td></tr>`).join("")}</table>`;
+      if (f.alg === "dijkstra") side = `<table class="vtable"><tr><th>Town</th><th>Minutes</th><th>Via</th></tr>${N.map(n => `<tr class="${n.id === f.cur ? "hl" : f.done.includes(n.id) ? "ok" : ""}"><td class="l">${NAMES[n.id]}</td><td>${n.id in f.cost ? f.cost[n.id] : "∞"}</td><td class="l">${f.prev?.[n.id] ? NAMES[f.prev[n.id]] : ""}</td></tr>`).join("")}</table>`;
       else side = `<div class="viz-row-label">${f.alg === "bfs" ? "Queue (front first)" : "Stack (top last)"}</div>${chips(f.box.map(id => NAMES[id]))}<div class="viz-row-label" style="margin-top:6px">Visited</div>${chips(f.order.map(id => NAMES[id]), () => "ok")}`;
-      stage.innerHTML = `<div class="two" style="align-items:center">${graphSVG(nodes, edges, { directed: true, W: 420, H: 250, label: "flight graph" })}<div style="min-width:0;overflow-x:auto">${side}</div></div>`;
+      stage.innerHTML = `<div class="two" style="align-items:center">${graphSVG(nodes, edges, { directed: true, W: 420, H: 250, label: "road graph" })}<div style="min-width:0;overflow-x:auto">${side}</div></div>`;
     },
   });
 };
+W.graph = host => graphWidget(host, "bfs");
+W.paths = host => graphWidget(host, "dijkstra");
 
-/* ---------- Ch 19: space ---------- */
+/* ---------- Ch 12: space ---------- */
 W.space = host => {
   host.classList.add("viz");
   host.innerHTML = `<div class="viz-head"><span class="viz-title">Extra memory as N grows</span><span class="viz-badge" data-n></span></div>
@@ -756,15 +759,15 @@ W.space = host => {
   function draw() {
     const n = +$('[name="n"]', host).value;
     $("[data-n]", host).textContent = `N = ${n}`;
-    $("[data-rows]", host).innerHTML = row("Uppercase into a new array", n, "mv", cx("O(N)")) + row("Uppercase in place (one index)", 1, "ok", cx("O(1)")) + row("Reverse in place (two indexes)", 2, "ok", cx("O(1)")) + row("Recursive sum: one stack frame per call", n, "hl", cx("O(N)"));
+    $("[data-rows]", host).innerHTML = row("Scaled copy into a new array", n, "mv", cx("O(N)")) + row("Scale in place (one index)", 1, "ok", cx("O(1)")) + row("Reverse in place (two indexes)", 2, "ok", cx("O(1)")) + row("Recursive sum: one stack frame per call", n, "hl", cx("O(N)"));
     $("[data-c]", host).innerHTML = rich(`The input itself is not counted. At N = ${n}, copying needs ${n} new slots and recursion holds ${n} waiting frames, while the in-place versions need ${n > 0 ? "one or two" : "no"} variables whatever N is.`);
   }
   host.addEventListener("input", draw); draw();
 };
 
-/* ---------- Ch 20: two sum, two ways ---------- */
+/* ---------- Ch 73: two sum, two ways ---------- */
 W.twoSum = host => stepper(host, {
-  title: "Two sum: nested loops vs a magical lookup", speed: 550,
+  title: "Two sum: nested loops vs a hash lookup", speed: 550,
   inputs: `<label>Method <select name="m"><option value="nested">Nested loops</option><option value="hash">Hash lookup</option></select></label>
     <label>Target <input type="number" name="t" value="14"></label><button class="vbtn pen" data-op="run">Run</button>`,
   note: "Run both methods on the same target and compare the step counts.",
@@ -798,9 +801,9 @@ W.twoSum = host => stepper(host, {
   },
 });
 
-// Visualizers for chapters 21-33. Simulations run for real in the browser; tree frames come from the real algorithms.
+// More visualizers. Simulations run for real in the browser; tree frames come from the real algorithms.
 
-/* ---------- Ch 21: bottom-up mergesort ---------- */
+/* ---------- Ch 32: bottom-up mergesort ---------- */
 W.mergeViz = host => stepper(host, {
   title: "Bottom-up mergesort, one merge at a time", speed: 520,
   inputs: `<label>Input <select name="preset"><option value="random">random</option><option value="reversed">reversed</option><option value="sorted">sorted</option><option value="dups">with duplicates</option></select></label><button class="vbtn" data-op="shuffle">New random</button>`,
@@ -851,7 +854,7 @@ W.mergeViz = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 22: a real benchmark in the browser ---------- */
+/* ---------- Ch 13: a real benchmark in the browser ---------- */
 W.benchLab = host => {
   host.classList.add("viz");
   host.innerHTML = `<div class="viz-head"><span class="viz-title">Benchmark lab: time three sorts in your browser</span><span class="viz-badge" data-b></span></div>
@@ -895,7 +898,7 @@ W.benchLab = host => {
   });
 };
 
-/* ---------- Ch 23: shuffle bias ---------- */
+/* ---------- Ch 74: shuffle bias ---------- */
 W.shuffleBias = host => {
   host.classList.add("viz");
   host.innerHTML = `<div class="viz-head"><span class="viz-title">Shuffle [A, B, C] 60,000 times</span><span class="viz-badge" data-b></span></div>
@@ -921,7 +924,7 @@ W.shuffleBias = host => {
   $("[data-run]", host).addEventListener("click", run); run();
 };
 
-/* ---------- Ch 24: cache simulator ---------- */
+/* ---------- Ch 81: cache simulator ---------- */
 W.cacheSim = host => stepper(host, {
   title: "LRU vs FIFO on the same requests", speed: 650,
   inputs: `<label>Requests <select name="p"><option value="hot">Two hot keys among one-offs</option><option value="cyc">Cycle through 4 keys</option><option value="mix">Mixed</option></select></label><label>Capacity <select name="c"><option>2</option><option selected>3</option><option>4</option></select></label>`,
@@ -951,7 +954,7 @@ W.cacheSim = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 25: red-black tree insertion ---------- */
+/* ---------- Ch 54: red-black tree insertion ---------- */
 W.rbTree = host => {
   let keys = [1, 2, 3, 4, 5, 6, 7];
   const snapshot = (root, marks = {}) => { const c = n => n ? { k: n.k, l: c(n.l), r: c(n.r), cls: (n.red ? "red" : "black") + (marks[n.k] ? " " + marks[n.k] : "") } : null; return c(root); };
@@ -1018,7 +1021,7 @@ W.rbTree = host => {
   });
 };
 
-/* ---------- Ch 26: treap ---------- */
+/* ---------- Ch 54: treap ---------- */
 W.treap = host => {
   let rng = rngFrom(randomSeed()), items = [];
   { const used = new Set(); for (let k = 1; k <= 7; k++) { let p; do p = rng.int(0, 99); while (used.has(p)); used.add(p); items.push([k, p]); } }
@@ -1076,7 +1079,7 @@ W.treap = host => {
   });
 };
 
-/* ---------- Ch 27: B-tree insertion (t = 2) ---------- */
+/* ---------- Ch 55: B-tree insertion (t = 2) ---------- */
 W.btree = host => {
   const T = 2; let keys = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const snap = (root, mark = {}) => { const c = n => ({ keys: n.keys.slice(), kids: n.leaf ? [] : n.kids.map(c), cls: mark.node === n ? mark.cls : "", hk: mark.node === n ? mark.hk : undefined }); return c(root); };
@@ -1130,7 +1133,7 @@ W.btree = host => {
   });
 };
 
-/* ---------- Ch 28: external sort calculator ---------- */
+/* ---------- Ch 82: external sort calculator ---------- */
 W.extSort = host => {
   host.classList.add("viz");
   const Ns = [1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12], Ms = [100, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9], Bs = [10, 100, 1000, 10000];
@@ -1159,7 +1162,7 @@ W.extSort = host => {
   host.addEventListener("input", draw); draw();
 };
 
-/* ---------- Ch 29: Monte Carlo pi ---------- */
+/* ---------- Ch 74: Monte Carlo pi ---------- */
 W.darts = host => {
   host.classList.add("viz");
   host.innerHTML = `<div class="viz-head"><span class="viz-title">Estimate π by throwing darts</span><span class="viz-badge" data-b>0 darts</span></div>
@@ -1197,7 +1200,7 @@ W.darts = host => {
   matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { frame(); });
 };
 
-/* ---------- Ch 30: hash spread ---------- */
+/* ---------- Ch 42: hash spread ---------- */
 W.hashSpread = host => {
   host.classList.add("viz");
   host.innerHTML = `<div class="viz-head"><span class="viz-title">Where do the keys land?</span><span class="viz-badge" data-b></span></div>
@@ -1235,7 +1238,7 @@ W.hashSpread = host => {
   draw();
 };
 
-/* ---------- Ch 31: Rabin-Karp ---------- */
+/* ---------- Ch 43: Rabin-Karp ---------- */
 W.rabinKarp = host => stepper(host, {
   title: "Rabin–Karp with a rolling hash", speed: 650,
   inputs: `<label>Text <input type="text" name="t" value="abracadabra" maxlength="22" autocomplete="off"></label><label>Find <input type="text" name="p" value="abra" maxlength="6" style="width:80px" autocomplete="off"></label>
@@ -1277,7 +1280,7 @@ W.rabinKarp = host => stepper(host, {
   },
 });
 
-/* ---------- Ch 32: bit vector ---------- */
+/* ---------- Ch 83: bit vector ---------- */
 W.bitVector = host => {
   host.classList.add("viz");
   const U = 64, WS = 16; // display words of 16 bits so a word fits on a phone
@@ -1320,7 +1323,7 @@ W.bitVector = host => {
   draw();
 };
 
-/* ---------- Ch 33: Bloom filter calculator ---------- */
+/* ---------- Ch 83: Bloom filter calculator ---------- */
 W.bloomCalc = host => {
   host.classList.add("viz");
   host.innerHTML = `<div class="viz-head"><span class="viz-title">Size a Bloom filter</span><span class="viz-badge" data-b></span></div>

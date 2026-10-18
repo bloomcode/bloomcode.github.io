@@ -49,6 +49,8 @@
 
 /* Chapter body */
 .ch-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.ch-grid + .ch-grid { margin-top: 22px; }
+.topic-title { font: 800 19px/1.25 var(--display); padding-top: 14px; border-top: 1px dashed var(--rule); }
 .prose { display: grid; gap: 10px; max-width: 72ch; }
 .prose p { margin: 0; }
 .prose b { color: var(--ink); }

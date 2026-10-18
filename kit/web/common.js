@@ -65,7 +65,7 @@ addEventListener("resize", syncHeaderHeight);
 // Rail: chapters grouped by part, with a highlight that follows scrolling.
 function buildRail(rail, counts) {
   rail.innerHTML = DATA.parts.map(p => `
-    <div class="rail-part">Part ${["I","II","III","IV","V","VI"][p.n - 1]} · ${esc(p.name)}</div>
+    <div class="rail-part">${esc(p.label)} · ${esc(p.name)}</div>
     ${p.chs.map(ch => {
       const c = DATA.chapters.find(c => c.ch === ch);
       return `<a href="#ch-${ch}" data-ch="${ch}"><span class="rail-num">${String(ch).padStart(2, "0")}</span><span class="rail-name">${esc(c.short)}</span><span class="rail-count" data-count="${ch}">${counts ? counts(ch) : ""}</span><span class="rail-bar"><i data-bar="${ch}"></i></span></a>`;
