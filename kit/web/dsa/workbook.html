@@ -149,7 +149,7 @@
     </a>
     <label class="search" for="q">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-      <input id="q" type="search" placeholder="Search {{TOTAL}} exercises: delete, heap, treap, 24.2…" autocomplete="off">
+      <input id="q" type="search" placeholder="Search {{TOTAL}} exercises: delete, heap, treap, 2.4.2…" autocomplete="off">
     </label>
     <div class="chips" role="group" aria-label="Filter exercises">
       <button class="chip" data-level="Core" aria-pressed="false"><span class="dot" style="background:var(--core)"></span>Core</button>
@@ -241,7 +241,7 @@ const levels = new Set();
 let hideDone = false;
 
 /* ---------- progress storage: this browser ---------- */
-try { JSON.parse(localStorage.getItem("/*STORE_KEY*/.done") || "[]").forEach(id => done.add(id)); } catch {}
+try { JSON.parse(localStorage.getItem("/*STORE_KEY*/.done") || "[]").forEach(id => done.add(renumbered(id))); } catch {}
 const saveLocal = () => { try { localStorage.setItem("/*STORE_KEY*/.done", JSON.stringify([...done])); } catch {} };
 
 /* ---------- array playground ---------- */
@@ -459,7 +459,7 @@ document.addEventListener("click", ev => {
   const t = ev.target.closest(".tick");
   if (!t) return;
   const card = t.closest(".card"), id = card.dataset.id;
-  const ch = Number(id.split(".")[0]);
+  const ch = chapterOf(id);
   done.has(id) ? done.delete(id) : done.add(id);
   const finished = done.has(id) && chDone(ch) === chTotal(ch);
   paintAll(finished ? ch : undefined);

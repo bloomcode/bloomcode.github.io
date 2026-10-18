@@ -11,7 +11,7 @@ import re
 import sys
 import textwrap
 
-HEAD = re.compile(r"^(\s*)(?:#|//) ==== EX (\d+)\.(\d+) \| (.+?) \| (Core|Practice|Stretch)(?: \| class=(\w+))?\s*$")
+HEAD = re.compile(r"^(\s*)(?:#|//) ==== EX (\d+(?:\.\d+)*)\.(\d+) \| (.+?) \| (Core|Practice|Stretch)(?: \| class=(\w+))?\s*$")
 META = re.compile(r"^\s*(?:#|//) (PROMPT|EXAMPLE|BIGO|NOTE): (.*)$")
 END = re.compile(r"^\s*(?:#|//) ==== END\s*$")
 
@@ -105,7 +105,7 @@ def parse(path, lang):
         elif lang == "go":
             if need:
                 body = ("import " + need[0] if len(need) == 1 else "import (\n" + "\n".join("\t" + n for n in need) + "\n)") + "\n\n" + body
-        out.append(dict(ch=int(ch), num=int(num), title=title, level=level, code=body,
+        out.append(dict(ch=ch, num=int(num), title=title, level=level, code=body,
                         file=os.path.basename(path), **meta))
         i += 1
     return out

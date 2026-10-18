@@ -173,7 +173,7 @@
       <div>
         <div class="eyebrow" id="eyebrow">Go 1.24 · violet pen</div>
         <h1>The Go a contest <em>actually uses.</em></h1>
-        <p>Sixteen chapters of the language features, standard packages and habits that competitive Go depends on, from a byte-level reader and one flushed <code class="mono">bufio.Writer</code> to slice aliasing, <code class="mono">container/heap</code> and <code class="mono">bits.Mul64</code>. Solve each one, check it against the key, then tick it off.</p>
+        <p>{{CHAPTERS}} chapters of the language features, standard packages and habits that competitive Go depends on, from a byte-level reader and one flushed <code class="mono">bufio.Writer</code> to slice aliasing, <code class="mono">container/heap</code> and <code class="mono">bits.Mul64</code>, then errors, files and goroutines for code beyond the contest. Solve each one, check it against the key, then tick it off.</p>
         <div class="levels-row" id="levelsRow"></div>
         <div class="sync" id="sync"><i></i><span>Ticks are saved in this browser</span></div>
       </div>
@@ -402,7 +402,7 @@ document.addEventListener("click", ev => {
   const t = ev.target.closest(".tick");
   if (!t) return;
   const card = t.closest(".card"), id = card.dataset.id;
-  const ch = Number(id.split(".")[0]);
+  const ch = chapterOf(id);
   done.has(id) ? done.delete(id) : done.add(id);
   const finished = done.has(id) && chDone(ch) === chTotal(ch);
   paintAll(finished ? ch : undefined);

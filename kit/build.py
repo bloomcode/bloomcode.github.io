@@ -65,15 +65,63 @@ def read(rel):
 ANALYTICS = '<script data-goatcounter="https://bloomcode.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>\n'
 
 
-def document(fragment, description=""):
-    """The templates are page fragments (title, links, style, then the body). Wrap one as a full document."""
+GITHUB = "https://github.com/bloomcode"
+GITHUB_ICON = ('<svg viewBox="0 0 16 16" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8'
+               'c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94'
+               '-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2'
+               '-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0'
+               ' 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95'
+               '.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>')
+SITEBAR_CSS = """
+.sitebar { max-width: 1080px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }
+.sitebar.wide { max-width: 1240px; padding-bottom: 10px; }
+.sitebar a { color: var(--ink); text-decoration: none; }
+.sb-brand { display: flex; align-items: center; gap: 10px; font: 800 18px var(--display); }
+.sb-brand img { width: 32px; height: 32px; }
+.sb-nav { display: flex; align-items: center; gap: 6px 16px; flex-wrap: wrap; font: 600 13.5px var(--body); }
+.sb-nav a:hover, .sb-nav a[aria-current] { color: var(--pen); }
+.sb-nav a[aria-current] { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.sb-nav .gh { display: inline-flex; padding: 2px; }
+.sb-nav .short { display: none; }
+@media (max-width: 560px) { .sb-nav .long { display: none; } .sb-nav .short { display: inline; } }
+"""
+
+
+def site_bar(depth, current="", wide=False):
+    """The bar at the top of every page: home, the tracks, the lab and GitHub. `current` marks the page's section."""
+    up = "../" * depth
+
+    def item(key, href, label):
+        mark = ' aria-current="page"' if key == current else ""
+        return f'<a href="{up}{href}"{mark}>{label}</a>'
+    return (f'<header class="sitebar{" wide" if wide else ""}"><a class="sb-brand" href="{up or "./"}">'
+            '<img src="/icon-192.png" alt="" width="32" height="32">BloomCode</a><nav class="sb-nav" aria-label="Site">'
+            + item("dsa", "dsa/", '<span class="long">Data structures and algorithms</span><span class="short">DSA</span>')
+            + item("guide", "dsa/guide/", "Guide")
+            + item("cp", "cp/", '<span class="long">Competitive programming</span><span class="short">CP</span>')
+            + item("lab", "lab/", "Lab")
+            + f'<a class="gh" href="{GITHUB}" aria-label="BloomCode on GitHub" title="BloomCode on GitHub">{GITHUB_ICON}</a>'
+            + "</nav></header>\n")
+
+
+def document(fragment, description="", depth=None, current=""):
+    """The templates are page fragments (title, links, style, then the body). Wrap one as a full document.
+    With `depth`, the page gets the site bar (pages built by shell() already carry it)."""
     split = fragment.index("\n<header")
     head, body = fragment[:split], fragment[split + 1:]
+    if depth is not None:
+        body = site_bar(depth, current, wide=True) + body
     meta = f'<meta name="description" content="{html.escape(description)}">\n' if description else ""
     return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
-            f"{meta}{ICON_LINKS}{head.strip()}\n<style>[hidden]{{display:none!important}}img{{max-width:100%}}</style>\n"
+            f"{meta}{ICON_LINKS}{head.strip()}\n<style>[hidden]{{display:none!important}}img{{max-width:100%}}{SITEBAR_CSS}</style>\n"
             f"</head>\n<body>\n{body.strip()}\n{ANALYTICS}</body>\n</html>\n")
+
+
+def chapter_key(ch):
+    """Sort key for a chapter id: "2.5" -> (2, 5), 17 -> (17,)."""
+    return tuple(int(x) for x in str(ch).split("."))
 
 
 def export(repo):
@@ -85,14 +133,15 @@ def export(repo):
         if f.name.endswith("_test.go"):
             continue
         exs += buildlib.parse(str(f), lang)
-    exs.sort(key=lambda e: (e["ch"], e["num"]))
+    exs.sort(key=lambda e: (chapter_key(e["ch"]), e["num"]))
     assert len(exs) == track["exercises"], (repo.name, len(exs))
-    part_of = {ch: p["n"] for p in track["parts"] for ch in p["chapters"]}
-    chapters = [{"ch": c["n"], "title": c["title"], "short": c["short"], "focus": c["focus"],
-                 "file": re.sub(r"^(solutions|src)/", "", c["file"]), "part": part_of[c["n"]]} for c in track["chapters"]]
+    part_of = {str(ch): p["n"] for p in track["parts"] for ch in p["chapters"]}
+    chapters = [{"ch": str(c["n"]), "title": c["title"], "short": c["short"], "focus": c["focus"],
+                 "file": re.sub(r"^(solutions|src)/", "", c["file"]), "part": part_of[str(c["n"])]}
+                for c in sorted(track["chapters"], key=lambda c: chapter_key(c["n"]))]
     return track, {
         "lang": lang,
-        "parts": [{"n": p["n"], "name": p["name"], "chs": p["chapters"],  # dsa chapter numbers start with their area number
+        "parts": [{"n": p["n"], "name": p["name"], "chs": [str(ch) for ch in p["chapters"]],  # dsa: "2.5" is chapter 5 of area 2
                    "label": f"{'Area' if track['track'] == 'dsa' else 'Part'} {p['n']}"} for p in track["parts"]],
         "chapters": chapters,
         "exercises": [{"id": f"{e['ch']}.{e['num']}", "ch": e["ch"], "title": e["title"], "level": e["level"],
@@ -128,17 +177,11 @@ def guide_page(track):
                  "/*PAGE_JS*/": read("guide/page.js")}.items():
         assert "</script" not in v or k in ("/*BASE_CSS*/", "/*GUIDE_CSS*/")
         page = page.replace(k, v)
-    return document(page, f"A visual concept guide to the {len(track['chapters'])} chapters of the BloomCode DSA track.")
+    return document(page, f"A visual concept guide to the {len(track['chapters'])} chapters of the BloomCode DSA track.", 2, "guide")
 
 
 SHELL_CSS = """
 .site { max-width: 1080px; margin: 0 auto; padding: 28px 16px 56px; display: grid; gap: 18px; }
-.site-top { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
-.site-top a { color: inherit; text-decoration: none; }
-.site-brand { display: flex; align-items: center; gap: 10px; font: 800 18px var(--display); }
-.site-brand .brand-mark { width: 36px; height: 36px; background: none; border-radius: 0; box-shadow: none; padding: 0; }
-.site-nav { display: flex; gap: 14px; font: 600 13.5px var(--body); flex-wrap: wrap; }
-.site-nav a:hover { color: var(--pen); }
 .hero-site h1 { font: 800 clamp(30px, 5vw, 48px)/1.05 var(--display); letter-spacing: -0.01em; margin: 8px 0 12px; }
 .hero-site h1 em { font-style: normal; color: var(--pen); }
 .hero-site p { font-size: 16px; line-height: 1.6; color: var(--ink-2); max-width: 64ch; margin: 0; }
@@ -177,15 +220,11 @@ SHELL_CSS = """
 """
 
 
-def shell(title, description, body, depth):
-    up = "../" * depth
+def shell(title, description, body, depth, current=""):
     frag = (f"<title>{html.escape(title)}</title>\n{FONTS}<style>\n{BASE}\n{SHELL_CSS}\n</style>\n"
-            f'<header class="site-top" style="max-width:1080px;margin:0 auto;padding:18px 16px 0">'
-            f'<a class="site-brand" href="{up or "./"}"><img class="brand-mark" src="/icon-192.png" alt="" width="36" height="36">BloomCode</a>'
-            f'<nav class="site-nav"><a href="{up}dsa/">DSA</a><a href="{up}cp/">Competitive programming</a><a href="{up}lab/">Lab</a>'
-            f'<a href="https://github.com/bloomcode">GitHub</a></nav></header>\n'
-            f'<main class="site">{body}<p class="foot">Original exercises, solutions and guides. '
-            f'<a href="https://github.com/bloomcode">Starter repos on GitHub</a>; report mistakes as issues there.</p></main>')
+            + site_bar(depth, current)
+            + f'<main class="site">{body}<p class="foot">Original exercises, solutions and guides. '
+            f'<a href="{GITHUB}">Starter repos on GitHub</a>; report mistakes as issues there.</p></main>')
     return document(frag, description)
 
 
@@ -223,7 +262,7 @@ def lab_page(python_data):
             "<li><b>Keep your work</b><span>In Colab, use <b>File → Save a copy in Drive</b>. Want a progress badge and "
             "<code>git push</code> instead? Use a starter repo; the exercises are the same.</span></li></ol></section>"
             + "".join(sections))
-    return shell("Lab · BloomCode", "Jupyter notebooks for the BloomCode Python tracks, one per chapter, with tests and solutions.", body, 1)
+    return shell("Lab · BloomCode", "Jupyter notebooks for the BloomCode Python tracks, one per chapter, with tests and solutions.", body, 1, "lab")
 
 
 def lang_card(t, lang, counts):
@@ -248,36 +287,39 @@ def section_page(t, counts, ids):
             f"<li>Read an exercise in the workbook, write it in your copy, and run <code>make test EX={ids[t][1]}</code>.</li>"
             "<li>Push: the progress workflow ticks every exercise whose test passes. Stuck? The answer key has a tested solution.</li>"
             "</ol></section>")
-    return shell(f"{TRACKS[t]['name']} · BloomCode", TRACKS[t]["blurb"], body, 1)
+    return shell(f"{TRACKS[t]['name']} · BloomCode", TRACKS[t]["blurb"], body, 1, t)
 
 
 STAGES = (  # suggested order through the dsa chapters: (label, title, chapters in order, what it is for)
-    ("First", "The core toolkit", (11, 21, 25, 26, 22, 24, 41, 31, 71, 32, 23, 51, 56, 52),
+    ("First", "The core toolkit", ("1.1", "2.1", "2.5", "2.6", "2.2", "2.4", "4.1", "3.1", "7.1", "3.2", "2.3", "5.1", "5.6", "5.2"),
      "Most interview questions draw on these. Do the Core exercises, in this order."),
-    ("Next", "Graphs, design and performance", (61, 64, 62, 63, 72, 75, 73, 53, 27, 12, 13),
+    ("Next", "Graphs, design and performance", ("6.1", "6.4", "6.2", "6.3", "7.2", "7.5", "7.3", "5.3", "2.7", "1.2", "1.3"),
      "Then go back for the Practice exercises in the chapters that felt hard, and start CP Part 1 in your language: "
      "fast input and output come first."),
-    ("Later", "Depth", (54, 55, 33, 42, 43, 74, 81, 82, 83),
+    ("Later", "Depth", ("5.4", "5.5", "3.3", "4.2", "4.3", "7.4", "8.1", "8.2", "8.3"),
      "Depth for senior and systems-heavy interviews. Save the Stretch exercises for here, and finish the CP track: "
      "the standard library toolbox and contest essentials."),
 )
 
 
 def home_page(counts_by_track, dsa_track, ids):
-    shorts = {c["n"]: c["short"] for c in dsa_track["chapters"]}
-    areas = ", ".join(f"{p['n']}x {p['name'].lower()}" for p in dsa_track["parts"])
+    shorts = {str(c["n"]): c["short"] for c in dsa_track["chapters"]}
+    areas = ", ".join(f"{p['n']} {p['name'].lower()}" for p in dsa_track["parts"])
     steps = [
         ("Choose a track",
-         "<b>Data structures and algorithms</b> if you are preparing for coding interviews or want the fundamentals solid; "
-         "it runs in the order interviews build on. <b>Competitive programming</b> once the first DSA parts feel easy, or "
-         "now if you are already fluent and want contest speed in one language."),
+         '<a href="dsa/"><b>Data structures and algorithms</b></a> if you are preparing for coding interviews or want the '
+         "fundamentals solid; it runs in the order interviews build on. "
+         f'<a href="cp/"><b>Competitive programming</b></a> once the first DSA parts feel easy, or now if you are already fluent '
+         "and want contest speed in one language. Each track's page has the workbooks, answer keys and starters for "
+         f"Python, Java and Go ({counts_by_track['dsa']['python'][0]} DSA exercises, "
+         f"{min(c[0] for c in counts_by_track['cp'].values())} to {max(c[0] for c in counts_by_track['cp'].values())} in CP)."),
         ("Choose a language",
          "The one you will interview in. DSA has the same exercises in Python, Java and Go, so you can switch later."),
         ("Copy the starter",
          "Open the starter repo for your track and language, click <b>Use this template</b> (not Fork), and clone your copy. "
          f"Run <code>make test EX={ids['dsa'][0]}</code> for DSA or <code>EX={ids['cp'][0]}</code> for CP: it fails until you write that first exercise."),
         ("Work chapter by chapter",
-         "Read the chapter in the concept guide, then each exercise in the workbook. Write it, run "
+         'Read the chapter in the <a href="dsa/guide/">concept guide</a>, then each exercise in the workbook. Write it, run '
          f"<code>make test EX={ids['dsa'][1]}</code>, compare with the answer key, and push: <code>PROGRESS.md</code> ticks off every "
          "exercise whose test passes."),
     ]
@@ -287,22 +329,6 @@ def home_page(counts_by_track, dsa_track, ids):
         stages.append(f'<section class="panel card-site"><span class="eyebrow">{label} · {len(chs)} chapters</span>'
                       f"<h2>{title}</h2><p>{html.escape(', '.join(f'{n} {shorts[n]}' for n in chs))}.</p>"
                       f'<p class="why">{why}</p></section>')
-    cards = []
-    for t, info in TRACKS.items():
-        c = counts_by_track[t]
-        rows = "".join(
-            f'<li><b>{LANGS[l]}</b><span class="stats">{c[l][0]} exercises</span><span class="links">'
-            f'<a class="primary" href="{t}/{l}/workbook.html">Workbook</a><a href="{t}/{l}/answer-key.html">Answer key</a>'
-            f'<a href="https://github.com/bloomcode/{t}-{l}">Starter</a>'
-            + (f'<a href="lab/#{t}">Notebooks</a>' if l == "python" else "") + '</span></li>' for l in LANGS)
-        guide = ('<div class="links"><a class="primary" href="dsa/guide/">Concept guide</a>'
-                 '<span class="stats">all languages, ' + str(c['python'][1]) + ' chapters</span></div>') if t == "dsa" else ""
-        cards.append(f'<section class="panel card-site"><span class="eyebrow">{info["short"]}</span><h2>{info["name"]}</h2>'
-                     f'<p>{info["blurb"]}</p>{guide}<ul class="langs">{rows}</ul>'
-                     f'<div class="links"><a href="{t}/">Track overview</a></div></section>')
-    cards.append('<section class="panel card-site soon"><span class="eyebrow">Next</span><h2>More tracks</h2>'
-                 "<p>System design and SQL are candidates. Each new track gets the same shape: "
-                 "exercises with tests in a template starter, a workbook and an answer key here.</p></section>")
     help_items = [
         ("Stuck on an exercise", "Read the guide chapter again, then reveal the answer key one solution at a time."),
         ("Found a mistake", 'Open an issue on the starter repo you are using; the form asks for the exercise id. '
@@ -319,19 +345,19 @@ def home_page(counts_by_track, dsa_track, ids):
             "<p>Original exercises in Python, Java and Go, each with its own test. You solve them in your own copy of a "
             "starter repo; the tests tell you when you are right, and these pages explain the ideas and show worked "
             "solutions.</p>"
-            '<div class="links"><a class="primary" href="#start">Start here</a><a href="dsa/guide/">Concept guide</a>'
-            '<a href="#tracks">All workbooks and starters</a></div></section>'
+            '<div class="links"><a class="primary" href="#start">Start here</a><a href="dsa/">DSA track</a>'
+            '<a href="cp/">CP track</a><a href="dsa/guide/">Concept guide</a></div></section>'
             f'<section class="panel" id="start"><h2 class="sec">Start here</h2><ol class="start">{start}</ol></section>'
             '<section class="panel"><h2 class="sec">What to do first, and later</h2>'
             "<p class=\"lede\">Each exercise is <b>Core</b> (everyone should do it), <b>Practice</b> (consolidates the "
             "chapter) or <b>Stretch</b> (harder, or combines ideas). Inside a chapter, go in order: later exercises "
-            "reuse earlier ones. DSA chapter numbers name their area by the first digit: " + html.escape(areas) + ".</p>"
+            "reuse earlier ones. DSA chapters are numbered within their area, so 2.5 is chapter 5 of area 2 and 2.5.3 its "
+            "third exercise. The areas: " + html.escape(areas) + ".</p>"
             f'<div class="cards-site">{"".join(stages)}</div></section>'
-            f'<div class="cards-site" id="tracks">{"".join(cards)}</div>'
             '<section class="panel"><h2 class="sec">Help</h2><ul class="help">'
             + "".join(f"<li><b>{h}</b><span>{b}</span></li>" for h, b in help_items) +
             "</ul></section>")
-    return shell("BloomCode · Interview practice with tests", "Original interview-practice exercises with tests, in Python, Java and Go.", body, 0)
+    return shell("BloomCode · Interview practice with tests", "Original interview-practice exercises with tests, in Python, Java and Go.", body, 0, "home")
 
 
 def main():
@@ -349,13 +375,13 @@ def main():
         for lang in LANGS:
             repo = args.src / f"{t}-{lang}-solutions"
             track, data = export(repo)
-            chs = sorted(c["n"] for c in track["chapters"])
+            chs = sorted((str(c["n"]) for c in track["chapters"]), key=chapter_key)
             ids.setdefault(t, (f"{chs[0]}.1", f"{chs[2] if len(chs) > 2 else chs[0]}.2"))
             counts[t][lang] = (len(data["exercises"]), len(data["chapters"]))
             tdir = f"web/{t}" if t == "dsa" else f"web/{t}/{lang}"
             for kind, name in (("workbook", "workbook.html"), ("key", "answer-key.html")):
                 page = document(fill(read(f"{tdir}/{kind}.html"), track, data, lang, kind),
-                                f"{TRACKS[t]['name']} in {LANGS[lang]}: {'exercises' if kind == 'workbook' else 'tested solutions'}.")
+                                f"{TRACKS[t]['name']} in {LANGS[lang]}: {'exercises' if kind == 'workbook' else 'tested solutions'}.", 2, t)
                 dest = out / t / lang / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_text(page)

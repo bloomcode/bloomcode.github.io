@@ -173,7 +173,7 @@
       <div>
         <div class="eyebrow" id="eyebrow">Java 21 · violet pen</div>
         <h1>The Java a contest <em>actually uses.</em></h1>
-        <p>Sixteen chapters of the language features, collections and habits that competitive Java depends on, from a fast reader and one flushed <code class="mono">PrintWriter</code> to <code class="mono">long</code> overflow, comparators and <code class="mono">TreeMap</code>. Solve each one, check it against the key, then tick it off.</p>
+        <p>{{CHAPTERS}} chapters of the language features, collections and habits that competitive Java depends on, from a fast reader and one flushed <code class="mono">PrintWriter</code> to <code class="mono">long</code> overflow, comparators and <code class="mono">TreeMap</code>, then exceptions, files and threads for code beyond the contest. Solve each one, check it against the key, then tick it off.</p>
         <div class="levels-row" id="levelsRow"></div>
         <div class="sync" id="sync"><i></i><span>Ticks are saved in this browser</span></div>
       </div>
@@ -401,7 +401,7 @@ document.addEventListener("click", ev => {
   const t = ev.target.closest(".tick");
   if (!t) return;
   const card = t.closest(".card"), id = card.dataset.id;
-  const ch = Number(id.split(".")[0]);
+  const ch = chapterOf(id);
   done.has(id) ? done.delete(id) : done.add(id);
   const finished = done.has(id) && chDone(ch) === chTotal(ch);
   paintAll(finished ? ch : undefined);

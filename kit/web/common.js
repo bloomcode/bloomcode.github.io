@@ -3,7 +3,12 @@ const DATA = JSON.parse(document.getElementById("data").textContent);
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const slug = id => "ex-" + id.replace(".", "-");
+const slug = id => "ex-" + id.replaceAll(".", "-");
+// The chapter part of an exercise id: "2.5.3" -> "2.5", "17.3" -> "17".
+const chapterOf = id => id.slice(0, id.lastIndexOf("."));
+// DSA ids were area-block numbers until chapters were numbered within their area ("25.3" is now "2.5.3");
+// map ticks and reveals saved in this browser under the old ids.
+const renumbered = id => (/^\d\d\.\d+$/.test(id) && DATA.exercises.some(e => e.id === id[0] + "." + id.slice(1))) ? id[0] + "." + id.slice(1) : id;
 
 // `code` spans become <code>; arrows outside code become a proper arrow.
 function rich(text) {
