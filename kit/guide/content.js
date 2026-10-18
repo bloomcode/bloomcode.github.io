@@ -1,10 +1,10 @@
-// Concept guide content: 26 chapters in 8 areas. Prose uses `code` and **bold**; pseudocode is language-neutral.
+// Concept guide content: 34 chapters in 8 areas. Prose uses `code` and **bold**; pseudocode is language-neutral.
 const GUIDE = {
  "mark": "CG",
  "name": "Concept Guide",
  "sub": "Data structures and algorithms",
  "title": "DSA concept guide · BloomCode",
- "eyebrow": "26 chapters · the ideas behind the 282 exercises",
+ "eyebrow": "34 chapters · the ideas behind the 445 exercises",
  "heroTitle": [
   "See how it",
   "works",
@@ -44,14 +44,18 @@ const GUIDE = {
     21,
     22,
     23,
-    24
+    24,
+    25,
+    26,
+    27
    ]
   ],
   [
    "Sorting",
    [
     31,
-    32
+    32,
+    33
    ]
   ],
   [
@@ -69,14 +73,17 @@ const GUIDE = {
     52,
     53,
     54,
-    55
+    55,
+    56
    ]
   ],
   [
    "Graphs",
    [
     61,
-    62
+    62,
+    63,
+    64
    ]
   ],
   [
@@ -85,7 +92,8 @@ const GUIDE = {
     71,
     72,
     73,
-    74
+    74,
+    75
    ]
   ],
   [
@@ -338,7 +346,7 @@ const GUIDE = {
      "pitfall": "Shift **from the end backwards** when inserting. Going forwards copies the same value into every slot."
     }
    ],
-   "ex": "21.1–21.19"
+   "ex": "21.1–21.26"
   },
   {
    "ch": 22,
@@ -386,7 +394,7 @@ const GUIDE = {
      "pitfall": "Write `lo <= hi`, not `lo < hi`, or you skip the last remaining candidate. Always move past `mid` (`mid + 1`, `mid - 1`) or the loop can run forever."
     }
    ],
-   "ex": "22.1–22.10"
+   "ex": "22.1–22.16"
   },
   {
    "ch": 23,
@@ -434,7 +442,7 @@ const GUIDE = {
      "pitfall": "Relink in the right order. If you set `current.next = node` first, you lose the rest of the list."
     }
    ],
-   "ex": "23.1–23.16"
+   "ex": "23.1–23.28"
   },
   {
    "ch": 24,
@@ -482,7 +490,151 @@ const GUIDE = {
      "pitfall": "Removing from the front of a plain array is O(N), because everything shifts. Use a circular buffer, a linked list, or the language's deque."
     }
    ],
-   "ex": "24.1–24.9"
+   "ex": "24.1–24.20"
+  },
+  {
+   "ch": 25,
+   "title": "Strings: counts, windows and palindromes",
+   "short": "Strings",
+   "idea": "Most string problems are array problems over characters: count letters in a table, slide a window, or grow outward from a centre.",
+   "topics": [
+    {
+     "title": "Strings",
+     "body": [
+      "A string is a sequence of characters, so the array tools apply: indexes, two pointers, prefix sums. Two ideas carry most string questions. **Letter counts** compare strings without sorting them: two words are anagrams exactly when their counts match.",
+      "A **sliding window** keeps counts for the characters between two indexes. Moving the window one step adds one character on the right and removes one on the left, so each step costs O(1) instead of recounting the whole window.",
+      "Palindromes read the same both ways. Instead of testing every substring, **expand around each centre** (a character, or the gap between two) while the two ends match: N centres, at most N steps each."
+     ],
+     "model": [
+      "Counts: a 26-slot array or a hash map from character to count.",
+      "Window: grow on the right; shrink on the left while the window breaks the rule.",
+      "Matching counts in O(1) per step: track how many letters currently have the right count.",
+      "Strings are often immutable: build output in a list or builder, then join once."
+     ],
+     "widget": "anagramWindow",
+     "pseudo": "function anagramStarts(text, word):     // O(N) for text length N\n    need = counts of word; have = empty counts; out = []\n    for i from 0 to length(text) - 1:\n        add text[i] to have\n        if i >= length(word): remove text[i - length(word)] from have\n        if have == need: append i - length(word) + 1 to out\n    return out",
+     "costs": [
+      [
+       "Compare two words by letter counts",
+       "O(N)",
+       "versus O(N log N) by sorting"
+      ],
+      [
+       "Every anagram window in a text",
+       "O(N)",
+       "one slide, O(1) per step"
+      ],
+      [
+       "Longest palindromic substring",
+       "O(N^2)",
+       "expand around 2N - 1 centres"
+      ],
+      [
+       "Concatenate in a loop",
+       "O(N^2)",
+       "each += may copy the whole string"
+      ]
+     ],
+     "pitfall": "Building a string with += inside a loop copies it every time in many languages. Collect the pieces and join once."
+    }
+   ],
+   "ex": "25.1–25.10"
+  },
+  {
+   "ch": 26,
+   "title": "Two pointers and intervals",
+   "short": "Two pointers",
+   "idea": "Two indexes that only move inward or forward turn a quadratic search over pairs into one linear pass.",
+   "topics": [
+    {
+     "title": "Two pointers and intervals",
+     "body": [
+      "In a **sorted** array, put one pointer at each end. If their sum is too small, only moving the left pointer right can help; if it is too big, only moving the right pointer left can. Each step discards a value for good, so the walk is O(N).",
+      "A **read and a write pointer** rewrite an array in place: the reader visits every value, the writer only advances when it keeps one. This moves values, removes duplicates or partitions without extra space.",
+      "**Intervals** become easy once sorted by start. An interval can then only overlap the last one kept, so merging is one pass, and two sorted interval lists intersect with one pointer in each."
+     ],
+     "model": [
+      "Opposite ends: pair sums, containers, palindromes, squares of a sorted array.",
+      "Same direction: read and write pointers, fast and slow, windows.",
+      "Fix one value and run two pointers on the rest: triples in O(N^2) instead of O(N^3).",
+      "Sort intervals by start; compare each with the last merged one."
+     ],
+     "widget": "twoPointers",
+     "pseudo": "function pairSum(sorted, target):        // O(N), O(1) space\n    lo = 0; hi = length(sorted) - 1\n    while lo < hi:\n        s = sorted[lo] + sorted[hi]\n        if s == target: return (lo, hi)\n        if s < target: lo = lo + 1\n        else: hi = hi - 1\n    return none",
+     "costs": [
+      [
+       "Pair with a given sum, sorted input",
+       "O(N)",
+       "each step drops one value"
+      ],
+      [
+       "Triples to a target",
+       "O(N^2)",
+       "fix one, two-pointer the rest"
+      ],
+      [
+       "Merge overlapping intervals",
+       "O(N log N)",
+       "the sort dominates"
+      ],
+      [
+       "Remove a value in place",
+       "O(N)",
+       "read and write pointers, O(1) space"
+      ]
+     ],
+     "pitfall": "Two pointers from both ends rely on the array being sorted. On unsorted input, sort first or use a hash table."
+    }
+   ],
+   "ex": "26.1–26.14"
+  },
+  {
+   "ch": 27,
+   "title": "Grids and matrices",
+   "short": "Grids",
+   "idea": "A grid is an array of rows: index it as grid[row][col], walk it by bounds, and reuse its own cells as scratch space.",
+   "topics": [
+    {
+     "title": "Grids and matrices",
+     "body": [
+      "Most grid questions are about **traversal order**: row by row, column by column, in a spiral, or along diagonals. Keep explicit bounds (top, bottom, left, right) and move them as you finish a side, instead of tracking visited cells.",
+      "Diagonals have a simple rule: every cell on one anti-diagonal has the same `row + col`, and every cell on one main diagonal has the same `row - col`. That turns a zigzag walk into a loop over diagonal numbers.",
+      "Grids that are sorted along rows and columns can be searched from a **corner**: from the top-right, a bigger value rules out a column and a smaller one rules out a row. In-place changes, like rotating or zeroing, often use the first row and column as markers."
+     ],
+     "model": [
+      "Rotate clockwise: transpose, then reverse every row.",
+      "Spiral: four bounds that shrink after each side.",
+      "Sorted grid: start top-right, step left or down, O(R + C).",
+      "Neighbours: the four (or eight) offsets, checked against the bounds."
+     ],
+     "widget": "spiral",
+     "pseudo": "function spiral(grid):                   // O(R × C)\n    top = 0; bottom = rows - 1; left = 0; right = cols - 1\n    while top <= bottom and left <= right:\n        read top row left to right; read right column downward\n        if top < bottom: read bottom row right to left\n        if left < right: read left column upward\n        top++; bottom--; left++; right--",
+     "costs": [
+      [
+       "Visit every cell",
+       "O(R × C)",
+       "spiral, zigzag or row order"
+      ],
+      [
+       "Search a row- and column-sorted grid",
+       "O(R + C)",
+       "each step drops a row or a column"
+      ],
+      [
+       "Rotate a square grid in place",
+       "O(N^2)",
+       "transpose plus reversals, O(1) space"
+      ],
+      [
+       "Validate a 9 by 9 board",
+       "O(1)",
+       "a bit mask per row, column and box"
+      ]
+     ],
+     "pitfall": "grid[row][col] is row first. Swapping the two indexes works on square grids and fails silently on rectangles."
+    }
+   ],
+   "ex": "27.1–27.7"
   },
   {
    "ch": 31,
@@ -693,6 +845,54 @@ const GUIDE = {
    "ex": "32.1–32.16"
   },
   {
+   "ch": 33,
+   "title": "Linear-time sorts",
+   "short": "Linear sorts",
+   "idea": "Comparison sorts cannot beat N log N, but sorts that use the keys themselves as indexes can run in linear time.",
+   "topics": [
+    {
+     "title": "Linear-time sorts",
+     "body": [
+      "Any sort that only **compares** values needs about N log N comparisons in the worst case. Sorts that look at the values directly sidestep that bound, as long as the keys are small integers, digits or evenly spread numbers.",
+      "**Counting sort** tallies how often each key 0 to K occurs, then writes the keys out in order: O(N + K). **Radix sort** runs a stable counting sort once per digit, lowest digit first, so a later pass keeps the order the earlier passes built.",
+      "**Bucket sort** spreads values from a known range over N buckets and sorts each small bucket. On evenly spread input each bucket holds about one value, so the expected time is O(N)."
+     ],
+     "model": [
+      "Counting sort: one pass to count, one pass over the counts.",
+      "Prefix sums of the counts give each key's final position, which keeps the sort stable.",
+      "Radix sort: D passes of a stable sort for D-digit keys.",
+      "Bucket sort: fast when the values are spread evenly, slow when they cluster."
+     ],
+     "widget": "countingSort",
+     "pseudo": "function countingSort(values, maxKey):   // O(N + K)\n    counts = array of maxKey + 1 zeros\n    for each v in values: counts[v] = counts[v] + 1\n    out = []\n    for key from 0 to maxKey:\n        repeat counts[key] times: append key to out\n    return out",
+     "costs": [
+      [
+       "Counting sort, keys 0..K",
+       "O(N + K)",
+       "space O(K) for the counts"
+      ],
+      [
+       "Radix sort, D digits in base B",
+       "O(D × (N + B))",
+       "one stable pass per digit"
+      ],
+      [
+       "Bucket sort, evenly spread",
+       "O(N)",
+       "expected; O(N^2) if all land in one bucket"
+      ],
+      [
+       "Any comparison sort",
+       "O(N log N)",
+       "the lower bound these sorts avoid"
+      ]
+     ],
+     "pitfall": "Counting sort's cost includes K. Ten values between 0 and a billion need a billion counters, so use a comparison sort there."
+    }
+   ],
+   "ex": "33.1–33.4"
+  },
+  {
    "ch": 41,
    "title": "Hash tables",
    "short": "Hash tables",
@@ -738,7 +938,7 @@ const GUIDE = {
      "pitfall": "Hash tables do not keep any useful order. If you need sorted keys, sort them, or use a tree."
     }
    ],
-   "ex": "41.1–41.10"
+   "ex": "41.1–41.17"
   },
   {
    "ch": 42,
@@ -834,7 +1034,7 @@ const GUIDE = {
      "pitfall": "After subtracting, the value can go negative, and `%` keeps the sign in most languages. Add p before taking the remainder."
     }
    ],
-   "ex": "43.1–43.8"
+   "ex": "43.1–43.10"
   },
   {
    "ch": 51,
@@ -882,7 +1082,7 @@ const GUIDE = {
      "pitfall": "Checking only `left.value < node.value < right.value` does not validate a BST. Every value in the left subtree must be smaller, so pass down lower and upper bounds."
     }
    ],
-   "ex": "51.1–51.10"
+   "ex": "51.1–51.16"
   },
   {
    "ch": 52,
@@ -935,7 +1135,7 @@ const GUIDE = {
      "pitfall": "parent(i) is `(i − 1) / 2` with integer division. Using `i / 2` works for 1-based arrays, not 0-based ones."
     }
    ],
-   "ex": "52.1–52.8"
+   "ex": "52.1–52.10"
   },
   {
    "ch": 53,
@@ -978,7 +1178,7 @@ const GUIDE = {
      "pitfall": "Reaching the last character's node does not mean the word exists. Check for the end marker."
     }
    ],
-   "ex": "53.1–53.9"
+   "ex": "53.1–53.16"
   },
   {
    "ch": 54,
@@ -1116,6 +1316,54 @@ const GUIDE = {
    "ex": "55.1–55.9"
   },
   {
+   "ch": 56,
+   "title": "Binary trees",
+   "short": "Binary trees",
+   "idea": "A recursive function on a tree returns one fact about a subtree, and the parent combines the answers from its two children.",
+   "topics": [
+    {
+     "title": "Binary trees",
+     "body": [
+      "Without the ordering rule of a search tree, there is no shortcut: most questions visit every node. The pattern is **post-order recursion**: ask each child for an answer, then combine them at the parent. Heights, sizes, sums and balance checks all work this way in O(N).",
+      "Sometimes a node needs to return one thing and record another. For the **diameter**, each call returns its height while a variable outside keeps the longest path that bends at any node: left height plus right height.",
+      "**Level-order** walks use a queue (or a list per level) and answer questions about rows: averages, the rightmost node, the widest level. A tree written in pre-order with a marker for every missing child can be parsed back exactly."
+     ],
+     "model": [
+      "Post-order: children first, then the node. Heights, sums, balance.",
+      "Pre-order: the node first. Copying, serializing, paths from the root.",
+      "Level order: a queue, one level at a time.",
+      "Return one value, update a best-so-far on the side: diameter, largest path sum."
+     ],
+     "widget": "treeHeights",
+     "pseudo": "function diameter(root):                 // O(N), O(H) stack\n    best = 0\n    function height(node):\n        if node is empty: return 0\n        l = height(node.left); r = height(node.right)\n        best = max(best, l + r)\n        return 1 + max(l, r)\n    height(root)\n    return best",
+     "costs": [
+      [
+       "Height, size, sum, mirror",
+       "O(N)",
+       "every node once"
+      ],
+      [
+       "Level-order walk",
+       "O(N)",
+       "space O(W) for the widest level"
+      ],
+      [
+       "Lowest common ancestor",
+       "O(N)",
+       "no ordering to steer by"
+      ],
+      [
+       "Recursion depth",
+       "O(H)",
+       "O(N) for a tree shaped like a list"
+      ]
+     ],
+     "pitfall": "Computing a child's height again inside every parent makes a balance check O(N^2). Return the height from the same call that checks the balance."
+    }
+   ],
+   "ex": "56.1–56.18"
+  },
+  {
    "ch": 61,
    "title": "Graphs: representation and traversal",
    "short": "Graph traversal",
@@ -1204,7 +1452,103 @@ const GUIDE = {
      "pitfall": "Dijkstra breaks with negative edge weights: a vertex marked done might later get cheaper. Negative weights need Bellman–Ford."
     }
    ],
-   "ex": "62.1–62.3"
+   "ex": "62.1–62.6"
+  },
+  {
+   "ch": 63,
+   "title": "Union-find and spanning trees",
+   "short": "Union-find",
+   "idea": "A forest of parent links answers 'are these two in the same group?' in near-constant time, as long as groups only merge.",
+   "topics": [
+    {
+     "title": "Union-find and spanning trees",
+     "body": [
+      "Union-find (a **disjoint-set** structure) keeps each group as a tree of parent links; the root names the group. `find` follows links to the root, and `union` links one root under the other.",
+      "Two small rules keep the trees almost flat. **Union by size** hangs the smaller tree under the larger, and **path compression** points every node that `find` walked straight at the root. Together they make each operation effectively O(1).",
+      "It answers connectivity as edges arrive: an edge whose ends already share a root closes a cycle. A **minimum spanning tree** takes edges cheapest first and keeps each one that joins two groups, or grows one tree from a vertex with a heap."
+     ],
+     "model": [
+      "parent[i] == i means i is a root.",
+      "union(a, b) is false when a and b already share a root: that edge would close a cycle.",
+      "The group count falls by one with every successful union.",
+      "Cheapest edge first plus union-find gives a minimum spanning tree."
+     ],
+     "widget": "unionFind",
+     "pseudo": "function find(x):\n    root = x\n    while parent[root] != root: root = parent[root]\n    while parent[x] != root: next = parent[x]; parent[x] = root; x = next\n    return root\n\nfunction union(a, b):\n    ra = find(a); rb = find(b)\n    if ra == rb: return false\n    hang the smaller of ra, rb under the larger; return true",
+     "costs": [
+      [
+       "find / union",
+       "O(α(N))",
+       "effectively constant"
+      ],
+      [
+       "Cycle check, E edges",
+       "O(E α(V))",
+       "one union per edge"
+      ],
+      [
+       "Minimum spanning tree, edge by edge",
+       "O(E log E)",
+       "the sort dominates"
+      ],
+      [
+       "Minimum spanning tree from one vertex",
+       "O(E log E)",
+       "a heap of leaving edges"
+      ]
+     ],
+     "pitfall": "Union-find only merges. If groups ever have to split, or you need the path between two members, use a graph search instead."
+    }
+   ],
+   "ex": "63.1–63.8"
+  },
+  {
+   "ch": 64,
+   "title": "Grid and implicit graphs",
+   "short": "Implicit graphs",
+   "idea": "Many graphs are never stored: the vertices are grid cells, board squares or words, and the edges are the moves between them.",
+   "topics": [
+    {
+     "title": "Grid and implicit graphs",
+     "body": [
+      "Write a function that lists a vertex's **neighbours**, and every graph algorithm applies. In a grid the neighbours are the open cells up, down, left and right; for a knight, eight jumps; for words, every word one letter away.",
+      "**Breadth-first search** counts the fewest steps, and starting it from many sources at once measures how long something takes to spread. **Depth-first search** fills a region: count islands by starting a fill at each unvisited land cell.",
+      "On directed graphs, three colours (unvisited, on the current path, finished) detect a cycle: an edge back to a vertex still on the path closes one. When moves can never loop, as on a strictly rising path, memoizing each vertex's answer solves it once."
+     ],
+     "model": [
+      "A visited set (or marking the grid) keeps each vertex to one visit.",
+      "Fewest steps: breadth-first, level by level.",
+      "Regions and reachability: depth-first or breadth-first, either works.",
+      "Acyclic moves: depth-first search with a memo is dynamic programming."
+     ],
+     "widget": "spreadRounds",
+     "pseudo": "function roundsToSpread(grid):           // O(R × C)\n    frontier = every source cell; rounds = 0\n    while frontier is not empty and open cells remain:\n        next = open, unvisited neighbours of the frontier\n        mark them visited; frontier = next; rounds = rounds + 1\n    return rounds if every open cell was reached, else -1",
+     "costs": [
+      [
+       "Breadth- or depth-first search on a grid",
+       "O(R × C)",
+       "each cell once"
+      ],
+      [
+       "Knight moves on an N by N board",
+       "O(N^2)",
+       "eight edges per square"
+      ],
+      [
+       "Word ladder, N words of length L",
+       "O(N × L × 26)",
+       "neighbours by trying every letter"
+      ],
+      [
+       "Longest rising path with a memo",
+       "O(R × C)",
+       "each cell solved once"
+      ]
+     ],
+     "pitfall": "Mark a cell visited when it is added to the queue, not when it is taken out, or the same cell can be queued many times."
+    }
+   ],
+   "ex": "64.1–64.9"
   },
   {
    "ch": 71,
@@ -1286,7 +1630,7 @@ const GUIDE = {
      "pitfall": "Slicing a fresh copy of the array on every call silently turns O(N) recursion into O(N²) time and memory. Pass an index instead."
     }
    ],
-   "ex": "71.1–71.18"
+   "ex": "71.1–71.19"
   },
   {
    "ch": 72,
@@ -1334,7 +1678,7 @@ const GUIDE = {
      "pitfall": "A memo that is re-created on every call (a fresh empty map inside the function) memoizes nothing. Pass one map down, or keep it outside."
     }
    ],
-   "ex": "72.1–72.6"
+   "ex": "72.1–72.20"
   },
   {
    "ch": 73,
@@ -1382,7 +1726,7 @@ const GUIDE = {
      "pitfall": "Look up first, then add. Adding the current item to the table before checking it lets an item pair with itself."
     }
    ],
-   "ex": "73.1–73.9"
+   "ex": "73.1–73.17"
   },
   {
    "ch": 74,
@@ -1470,6 +1814,54 @@ const GUIDE = {
     }
    ],
    "ex": "74.1–74.17"
+  },
+  {
+   "ch": 75,
+   "title": "Backtracking",
+   "short": "Backtracking",
+   "idea": "Build a solution one choice at a time, undo the last choice when it leads nowhere, and prune branches that cannot succeed.",
+   "topics": [
+    {
+     "title": "Backtracking",
+     "body": [
+      "Backtracking is depth-first search over **partial solutions**. At each step, try every choice that keeps the partial solution valid, recurse, then **undo** the choice before trying the next. One path list and one set of used items are enough for the whole search.",
+      "The search is exponential in the worst case, so the craft is **pruning**: stop as soon as the remaining target is negative, a queen is attacked, or a number cell already conflicts. Sorting the choices often lets one failed test end a whole loop.",
+      "Repeated values make repeated answers. Sort first and skip a value equal to the one just tried at the same depth, and each distinct subset or combination appears once."
+     ],
+     "model": [
+      "choose, recurse, unchoose.",
+      "Orderings: N! leaves. Subsets: 2^N. Combinations with reuse: start the next choice at the current index.",
+      "Prune early: the cheaper the check, the deeper the savings.",
+      "Fill the most constrained spot first (fewest choices left)."
+     ],
+     "widget": "queens",
+     "pseudo": "function place(row):                     // queens, one per row\n    if row == n: count = count + 1; return\n    for col from 0 to n - 1:\n        if col, row - col and row + col are all unused:\n            mark them used\n            place(row + 1)\n            unmark them",
+     "costs": [
+      [
+       "Every ordering of N items",
+       "O(N × N!)",
+       "N! results of length N"
+      ],
+      [
+       "Every subset",
+       "O(N × 2^N)",
+       "two choices per item"
+      ],
+      [
+       "N queens",
+       "O(N!)",
+       "far less with pruning"
+      ],
+      [
+       "Each validity check",
+       "O(1)",
+       "sets or bit masks of used columns and diagonals"
+      ]
+     ],
+     "pitfall": "Forgetting to undo a choice leaks it into the next branch. Every add before the recursive call needs a matching remove after it."
+    }
+   ],
+   "ex": "75.1–75.7"
   },
   {
    "ch": 81,

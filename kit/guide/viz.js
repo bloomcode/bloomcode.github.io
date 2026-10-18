@@ -1341,3 +1341,261 @@ W.bloomCalc = host => {
   }
   host.addEventListener("input", draw); draw();
 };
+
+/* ---------- Grids: one row of cells per grid row ---------- */
+const gridRows = (G, marks = {}) => `<div class="vgrid">${G.map((row, r) =>
+  cells(row, { idx: false, marks: Object.fromEntries(row.map((_, c) => [c, marks[r + "," + c] || ""])) })).join("")}</div>`;
+
+/* ---------- Ch 25: anagram windows ---------- */
+W.anagramWindow = host => stepper(host, {
+  title: "Anagram windows: slide, don't rescan", speed: 650,
+  inputs: `<label>Text <input name="s" value="silentlistens" maxlength="16"></label><label>Word <input name="w" value="list" maxlength="6"></label>`,
+  note: "Each step adds one letter on the right and drops one on the left, so the letter counts update in O(1).",
+  build(host) {
+    const s = (val(host, "s") || "silentlistens").toLowerCase().replace(/[^a-z]/g, "").slice(0, 16);
+    const w = (val(host, "w") || "list").toLowerCase().replace(/[^a-z]/g, "").slice(0, 6);
+    const A = [...s], k = w.length;
+    if (!k || k > A.length) return [{ A, marks: {}, msg: "Pick a word no longer than the text." }];
+    const need = {}, have = {}, hits = [];
+    for (const c of w) need[c] = (need[c] || 0) + 1;
+    const F = [{ A, marks: {}, msg: `Find every rearrangement of **${w}**: a window of ${k} letters with the same letter counts.` }];
+    for (let i = 0; i < A.length; i++) {
+      have[A[i]] = (have[A[i]] || 0) + 1;
+      if (i >= k) have[A[i - k]]--;
+      if (i < k - 1) continue;
+      const start = i - k + 1, ok = Object.keys(need).every(c => have[c] === need[c]), marks = {};
+      if (ok) hits.push(start);
+      for (let j = start; j <= i; j++) marks[j] = ok ? "ok" : "hl";
+      F.push({ A, marks, ptrs: start === i ? { [i]: "lo·hi" } : { [start]: "lo", [i]: "hi" },
+        msg: ok ? `Window ${start} to ${i} has the same counts as **${w}**: a match at ${start}.` : `Window ${start} to ${i}: the counts differ, so slide on.`,
+        counters: { matches: hits.length } });
+    }
+    F[F.length - 1].msg += ` Matches start at ${hits.length ? hits.join(", ") : "no index"}.`;
+    return F;
+  },
+  render(f, stage) { stage.innerHTML = cells(f.A, { marks: f.marks, ptrs: f.ptrs }); },
+});
+
+/* ---------- Ch 26: two pointers ---------- */
+W.twoPointers = host => stepper(host, {
+  title: "Pair sum from both ends", speed: 650,
+  inputs: `<label>Target <input type="number" name="t" value="13"></label>`,
+  note: "A sum that is too small can only grow by moving lo right, and one that is too big only shrinks by moving hi left. Each step rules out one value for good.",
+  build(host) {
+    const A = [1, 3, 4, 6, 8, 9, 11, 14], t = num(host, "t", -99, 99, 13);
+    const F = [{ A, marks: {}, ptrs: { 0: "lo", [A.length - 1]: "hi" }, msg: `Sorted values, target **${t}**. Start with the smallest and the largest.` }];
+    let lo = 0, hi = A.length - 1, steps = 0;
+    while (lo < hi) {
+      steps++;
+      const s = A[lo] + A[hi], marks = {};
+      A.forEach((_, i) => { if (i < lo || i > hi) marks[i] = "dim"; });
+      marks[lo] = marks[hi] = s === t ? "ok" : "hl";
+      if (s === t) {
+        F.push({ A, marks, ptrs: { [lo]: "lo", [hi]: "hi" }, msg: `${A[lo]} + ${A[hi]} = ${t}. **Found** after ${steps} steps.`, counters: { steps } });
+        return F;
+      }
+      F.push({ A, marks, ptrs: { [lo]: "lo", [hi]: "hi" }, msg: `${A[lo]} + ${A[hi]} = ${s}, ${s < t ? `below ${t}: move lo right.` : `above ${t}: move hi left.`}`, counters: { steps } });
+      if (s < t) lo++; else hi--;
+    }
+    F.push({ A, marks: Object.fromEntries(A.map((_, i) => [i, "dim"])), msg: `The pointers met: no pair sums to ${t}, after ${steps} steps (never more than N).`, counters: { steps } });
+    return F;
+  },
+  render(f, stage) { stage.innerHTML = cells(f.A, { marks: f.marks, ptrs: f.ptrs }); },
+});
+
+/* ---------- Ch 27: spiral order ---------- */
+W.spiral = host => stepper(host, {
+  title: "Spiral order with four shrinking bounds", speed: 420,
+  inputs: `<label>Rows <input type="number" name="r" value="4" min="1" max="6"></label><label>Columns <input type="number" name="c" value="5" min="1" max="6"></label>`,
+  note: "After each ring, all four bounds move inward. The checks top < bottom and left < right stop a single row or column being read twice.",
+  build(host) {
+    const R = num(host, "r", 1, 6, 4), C = num(host, "c", 1, 6, 5);
+    const G = Array.from({ length: R }, (_, r) => Array.from({ length: C }, (_, c) => r * C + c + 1));
+    const order = [];
+    let top = 0, bottom = R - 1, left = 0, right = C - 1;
+    while (top <= bottom && left <= right) {
+      for (let c = left; c <= right; c++) order.push([top, c]);
+      for (let r = top + 1; r <= bottom; r++) order.push([r, right]);
+      if (top < bottom) for (let c = right - 1; c >= left; c--) order.push([bottom, c]);
+      if (left < right) for (let r = bottom - 1; r > top; r--) order.push([r, left]);
+      top++; bottom--; left++; right--;
+    }
+    const F = [{ G, marks: {}, out: [], msg: `A ${R} × ${C} grid. Read it clockwise from the top-left corner, ring by ring.` }];
+    order.forEach(([r, c], i) => {
+      const marks = {};
+      order.slice(0, i).forEach(([a, b]) => { marks[a + "," + b] = "dim"; });
+      marks[r + "," + c] = "hl";
+      F.push({ G, marks, out: order.slice(0, i + 1).map(([a, b]) => G[a][b]), msg: `Row ${r}, column ${c}: **${G[r][c]}**.`, counters: { read: i + 1 } });
+    });
+    F[F.length - 1].msg += " Every cell is read exactly once: O(R × C).";
+    return F;
+  },
+  render(f, stage) { stage.innerHTML = gridRows(f.G, f.marks) + chips(f.out); },
+});
+
+/* ---------- Ch 33: counting sort ---------- */
+W.countingSort = host => stepper(host, {
+  title: "Counting sort: tally, then write out", speed: 500,
+  inputs: `<button class="vbtn" data-op="shuffle">New values</button>`,
+  note: "No two values are ever compared: each value is the index of its own counter, so the work is O(N + K) for keys 0 to K.",
+  build(host, op) {
+    const rng = rngFrom(op === "shuffle" ? randomSeed() : 7);
+    const A = Array.from({ length: 10 }, () => rng.int(0, 5)), counts = Array(6).fill(0), out = [];
+    const F = [{ A, counts: [...counts], out: [], am: {}, cm: {}, msg: "Ten values from 0 to 5. First count how often each one occurs." }];
+    A.forEach((v, i) => {
+      counts[v]++;
+      F.push({ A, counts: [...counts], out: [], am: { [i]: "hl" }, cm: { [v]: "hl" }, msg: `${v}: add one to counts[${v}].`, counters: { pass: 1 } });
+    });
+    counts.forEach((c, v) => {
+      for (let k = 0; k < c; k++) out.push(v);
+      F.push({ A, counts: [...counts], out: [...out], am: {}, cm: { [v]: c ? "ok" : "dim" }, msg: c ? `Write ${v} out ${c} time${c > 1 ? "s" : ""}.` : `No ${v}s: write nothing.`, counters: { pass: 2 } });
+    });
+    F[F.length - 1].msg += " Sorted.";
+    return F;
+  },
+  render(f, stage) {
+    stage.innerHTML = `<div class="viz-row-label">Input</div>${cells(f.A, { marks: f.am })}<div class="viz-row-label">counts[value]</div>${cells(f.counts, { marks: f.cm })}`
+      + `<div class="viz-row-label">Output</div>${cells(f.out, { cap: f.A.length, idx: false })}`;
+  },
+});
+
+/* ---------- Ch 56: heights and the diameter in one walk ---------- */
+W.treeHeights = host => stepper(host, {
+  title: "One post-order walk: heights and the diameter", speed: 750,
+  note: "A node can answer only after both children have. The longest path bending at a node has left height + right height edges.",
+  build() {
+    const mk = (k, l = null, r = null) => ({ k, l, r });
+    const root = mk(1, mk(2, mk(4), mk(5, mk(7))), mk(3, null, mk(6)));
+    const H = new Map();
+    let best = 0, bestAt = null;
+    const draw = (n, cur) => n && { k: n.k, l: draw(n.l, cur), r: draw(n.r, cur), sub: H.has(n) ? "h " + H.get(n) : null,
+      cls: n === cur ? "hl" : n === bestAt ? "ok" : H.has(n) ? "dim" : "" };
+    const F = [{ t: draw(root, null), msg: "Find the longest path between any two nodes, counted in edges." }];
+    (function walk(n) {
+      if (!n) return 0;
+      const a = walk(n.l), b = walk(n.r);
+      H.set(n, 1 + Math.max(a, b));
+      const better = a + b > best;
+      if (better) { best = a + b; bestAt = n; }
+      F.push({ t: draw(root, n), msg: `Node ${n.k}: left height ${a}, right height ${b}, so its height is ${1 + Math.max(a, b)}. A path bending here has ${a + b} edges${better ? ", the best so far" : ""}.`, counters: { best } });
+      return H.get(n);
+    })(root);
+    F.push({ t: draw(root, null), msg: `The diameter is **${best}** edges, bending at node ${bestAt.k}. Each node was visited once: O(N).`, counters: { best } });
+    return F;
+  },
+  render(f, stage) { stage.innerHTML = binTree(f.t, { label: "binary tree" }); },
+});
+
+/* ---------- Ch 63: union-find ---------- */
+W.unionFind = host => stepper(host, {
+  title: "Union-find: parent links, union by size, path compression", speed: 900,
+  note: "Each element points at a parent and a root points at itself. find follows the links up, then points every node it passed straight at the root.",
+  build() {
+    const n = 8, parent = [...Array(n).keys()], size = Array(n).fill(1);
+    const pairs = [[0, 1], [2, 3], [1, 3], [4, 5], [6, 7], [5, 7], [3, 7], [0, 6]];
+    const groups = () => parent.filter((p, i) => p === i).length;
+    const find = (x, path) => {
+      let r = x;
+      while (parent[r] !== r) { path.push(r); r = parent[r]; }
+      for (const p of path) parent[p] = r;
+      return r;
+    };
+    const F = [{ parent: [...parent], marks: {}, msg: "Eight elements, each its own group: parent[i] = i.", counters: { groups: n } }];
+    for (const [a, b] of pairs) {
+      const pa = [], pb = [], ra = find(a, pa), rb = find(b, pb), marks = {};
+      [...pa, ...pb].forEach(i => { marks[i] = "hl"; });
+      let msg;
+      if (ra === rb) {
+        marks[ra] = "ok";
+        msg = `union(${a}, ${b}): both finds reach root ${ra}, so they are already in one group.`;
+      } else {
+        let big = ra, small = rb;
+        if (size[big] < size[small]) [big, small] = [small, big];
+        parent[small] = big;
+        size[big] += size[small];
+        marks[small] = "mv";
+        marks[big] = "ok";
+        msg = `union(${a}, ${b}): roots ${ra} and ${rb}. Hang the smaller group's root ${small} under ${big}, which now has ${size[big]} members.`;
+      }
+      if (pa.length + pb.length > 2) msg += " The finds also flattened the path they walked.";
+      F.push({ parent: [...parent], marks, msg, counters: { groups: groups() } });
+    }
+    return F;
+  },
+  render(f, stage) { stage.innerHTML = `<div class="viz-row-label">parent[i]</div>${cells(f.parent, { marks: f.marks })}`; },
+});
+
+/* ---------- Ch 64: breadth-first rounds on a grid ---------- */
+W.spreadRounds = host => stepper(host, {
+  title: "Breadth-first search from every source at once", speed: 750,
+  note: "All sources start in the first frontier, so each cell is reached in the fewest possible rounds. Walls (#) are never entered.",
+  build() {
+    const plan = ["S...#.", ".##.#.", "...#..", "#....S"], R = plan.length, C = plan[0].length;
+    const G = plan.map(row => [...row].map(ch => (ch === "." ? "" : ch)));
+    let frontier = [];
+    plan.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === "S") frontier.push([r, c]); }));
+    const seen = new Set(frontier.map(([r, c]) => r + "," + c)), open = plan.join("").split(".").length - 1;
+    const snap = cur => {
+      const marks = {};
+      G.forEach((row, r) => row.forEach((v, c) => {
+        const key = r + "," + c;
+        marks[key] = v === "#" ? "dim" : cur.has(key) ? "hl" : v !== "" ? "ok" : "";
+      }));
+      return { G: G.map(row => [...row]), marks };
+    };
+    const F = [{ ...snap(new Set()), msg: "Two sources (S). Each round, every reached cell reaches its open neighbours up, down, left and right." }];
+    let round = 0;
+    while (frontier.length) {
+      const next = [];
+      for (const [r, c] of frontier) for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nr = r + dr, nc = c + dc, key = nr + "," + nc;
+        if (nr < 0 || nr >= R || nc < 0 || nc >= C || plan[nr][nc] !== "." || seen.has(key)) continue;
+        seen.add(key);
+        next.push([nr, nc]);
+      }
+      if (!next.length) break;
+      round++;
+      next.forEach(([r, c]) => { G[r][c] = String(round); });
+      F.push({ ...snap(new Set(next.map(([r, c]) => r + "," + c))), msg: `Round ${round}: ${next.length} new cell${next.length === 1 ? "" : "s"} reached.`, counters: { rounds: round } });
+      frontier = next;
+    }
+    const left = open - (seen.size - 2);
+    F.push({ ...snap(new Set()), msg: left ? `Stuck after ${round} rounds: ${left} cells can never be reached.` : `Every open cell is reached after **${round} rounds**. Each cell joined a frontier once: O(R × C).`, counters: { rounds: round } });
+    return F;
+  },
+  render(f, stage) { stage.innerHTML = gridRows(f.G, f.marks); },
+});
+
+/* ---------- Ch 75: backtracking with queens ---------- */
+W.queens = host => stepper(host, {
+  title: "Backtracking: queens, one row at a time", speed: 450,
+  inputs: `<label>Board <select name="n"><option>4</option><option selected>5</option><option>6</option></select></label>`,
+  note: "Try a square, go on to the next row, and undo the choice when no square there is safe. Sets of used columns and diagonals make each check O(1).",
+  build(host) {
+    const n = num(host, "n", 4, 6, 5), cols = [], F = [];
+    const board = () => Array.from({ length: n }, (_, r) => Array.from({ length: n }, (_, c) => (cols[r] === c ? "Q" : "")));
+    const safe = (r, c) => cols.every((cc, rr) => cc !== c && Math.abs(cc - c) !== r - rr);
+    let tries = 0, done = false;
+    F.push({ G: board(), marks: {}, msg: `Place ${n} queens so that no two share a row, column or diagonal.` });
+    (function place(r) {
+      if (r === n) { done = true; return; }
+      for (let c = 0; c < n && !done; c++) {
+        tries++;
+        if (!safe(r, c)) {
+          F.push({ G: board(), marks: { [r + "," + c]: "bad" }, msg: `Row ${r}, column ${c} is attacked.`, counters: { tries } });
+          continue;
+        }
+        cols.push(c);
+        F.push({ G: board(), marks: { [r + "," + c]: "ok" }, msg: `Row ${r}: place a queen in column ${c}.`, counters: { tries } });
+        place(r + 1);
+        if (!done) {
+          cols.pop();
+          F.push({ G: board(), marks: { [r + "," + c]: "mv" }, msg: `Nothing below works, so **undo** row ${r}, column ${c}.`, counters: { tries } });
+        }
+      }
+    })(0);
+    F.push({ G: board(), marks: Object.fromEntries(cols.map((c, r) => [r + "," + c, "ok"])), msg: `Solved after ${tries} tries, out of ${n ** n} boards with one queen per row.`, counters: { tries } });
+    return F;
+  },
+  render(f, stage) { stage.innerHTML = gridRows(f.G, f.marks); },
+});
