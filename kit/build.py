@@ -171,6 +171,8 @@ SHELL_CSS = """
 .help { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 .help li { display: grid; gap: 4px; color: var(--ink-2); line-height: 1.55; }
 .help a { color: var(--pen); }
+.langs.lab li > b { min-width: 30px; }
+.lab-title { flex: 1 1 220px; color: var(--ink); }
 .foot a { color: inherit; }
 """
 
@@ -180,16 +182,55 @@ def shell(title, description, body, depth):
     frag = (f"<title>{html.escape(title)}</title>\n{FONTS}<style>\n{BASE}\n{SHELL_CSS}\n</style>\n"
             f'<header class="site-top" style="max-width:1080px;margin:0 auto;padding:18px 16px 0">'
             f'<a class="site-brand" href="{up or "./"}"><img class="brand-mark" src="/icon-192.png" alt="" width="36" height="36">BloomCode</a>'
-            f'<nav class="site-nav"><a href="{up}dsa/">DSA</a><a href="{up}cp/">Competitive programming</a>'
+            f'<nav class="site-nav"><a href="{up}dsa/">DSA</a><a href="{up}cp/">Competitive programming</a><a href="{up}lab/">Lab</a>'
             f'<a href="https://github.com/bloomcode">GitHub</a></nav></header>\n'
             f'<main class="site">{body}<p class="foot">Original exercises, solutions and guides. '
             f'<a href="https://github.com/bloomcode">Starter repos on GitHub</a>; report mistakes as issues there.</p></main>')
     return document(frag, description)
 
 
+LAB = "https://github.com/bloomcode/codelab"
+COLAB = "https://colab.research.google.com/github/bloomcode/codelab/blob/main/"
+
+
+def lab_page(python_data):
+    """The Jupyter lab: one notebook per Python chapter, generated into the codelab repo by studio's make_lab."""
+    sections = []
+    for t, data in python_data.items():
+        per = {}
+        for e in data["exercises"]:
+            per[e["ch"]] = per.get(e["ch"], 0) + 1
+        rows = "".join(
+            f'<li><b>{c["ch"]}</b><span class="lab-title">{html.escape(c["title"])}</span><span class="stats">{per[c["ch"]]} exercises</span>'
+            f'<span class="links"><a class="primary" href="{COLAB}{t}/{Path(c["file"]).stem}.ipynb">Open in Colab</a>'
+            f'<a href="{LAB}/blob/main/{t}/{Path(c["file"]).stem}.ipynb">View</a>'
+            f'<a href="../{t}/python/workbook.html#ch-{c["ch"]}">Workbook</a></span></li>' for c in data["chapters"])
+        sections.append(f'<section class="panel card-site" id="{t}"><span class="eyebrow">{TRACKS[t]["short"]} · Python</span>'
+                        f'<h2>{TRACKS[t]["name"]}</h2><ul class="langs lab">{rows}</ul></section>')
+    body = ('<section class="panel hero-site"><span class="eyebrow">Lab · Python in Jupyter</span>'
+            "<h1>Practise in a <em>notebook.</em></h1>"
+            "<p>Every chapter of the Python tracks as a Jupyter notebook: the same exercises and tests as the starters, "
+            "with each exercise linked to its explanation and to a tested solution. Open one in Colab and start; nothing "
+            "to install.</p>"
+            f'<div class="links"><a class="primary" href="#dsa">DSA notebooks</a><a href="#cp">CP notebooks</a>'
+            f'<a href="{LAB}">The lab on GitHub</a></div></section>'
+            '<section class="panel"><h2 class="sec">How it works</h2><ol class="start">'
+            "<li><b>Open a chapter</b><span>Click <b>Open in Colab</b>, or clone the lab and run <code>jupyter lab</code> "
+            "after <code>pip install jupyterlab pytest</code>.</span></li>"
+            "<li><b>Run the setup cell once</b><span>It imports what the chapter needs.</span></li>"
+            "<li><b>Write, then test</b><span>Replace the stub in an exercise's cell, run it, then run the test cell "
+            "under it. Stuck? Each exercise links to its solution in the answer key.</span></li>"
+            "<li><b>Keep your work</b><span>In Colab, use <b>File → Save a copy in Drive</b>. Want a progress badge and "
+            "<code>git push</code> instead? Use a starter repo; the exercises are the same.</span></li></ol></section>"
+            + "".join(sections))
+    return shell("Lab · BloomCode", "Jupyter notebooks for the BloomCode Python tracks, one per chapter, with tests and solutions.", body, 1)
+
+
 def lang_card(t, lang, counts):
     links = [f'<a class="primary" href="{lang}/workbook.html">Workbook</a>', f'<a href="{lang}/answer-key.html">Answer key</a>',
              f'<a href="https://github.com/bloomcode/{t}-{lang}">Starter repo</a>']
+    if lang == "python":
+        links.append(f'<a href="../lab/#{t}">Notebooks</a>')
     return (f'<section class="panel card-site"><span class="eyebrow">{TRACKS[t]["short"]} · {LANGS[lang]}</span>'
             f"<h2>{LANGS[lang]}</h2><p class=\"stats\">{counts[lang][0]} exercises · {counts[lang][1]} chapters</p>"
             f'<div class="links">{"".join(links)}</div></section>')
@@ -252,7 +293,8 @@ def home_page(counts_by_track, dsa_track, ids):
         rows = "".join(
             f'<li><b>{LANGS[l]}</b><span class="stats">{c[l][0]} exercises</span><span class="links">'
             f'<a class="primary" href="{t}/{l}/workbook.html">Workbook</a><a href="{t}/{l}/answer-key.html">Answer key</a>'
-            f'<a href="https://github.com/bloomcode/{t}-{l}">Starter</a></span></li>' for l in LANGS)
+            f'<a href="https://github.com/bloomcode/{t}-{l}">Starter</a>'
+            + (f'<a href="lab/#{t}">Notebooks</a>' if l == "python" else "") + '</span></li>' for l in LANGS)
         guide = ('<div class="links"><a class="primary" href="dsa/guide/">Concept guide</a>'
                  '<span class="stats">all languages, ' + str(c['python'][1]) + ' chapters</span></div>') if t == "dsa" else ""
         cards.append(f'<section class="panel card-site"><span class="eyebrow">{info["short"]}</span><h2>{info["name"]}</h2>'
@@ -267,6 +309,8 @@ def home_page(counts_by_track, dsa_track, ids):
                             'See the <a href="https://github.com/bloomcode/.github/blob/main/CONTRIBUTING.md">contributing guide</a>.'),
         ("Get fixes and new exercises", "Your copy can pull from its starter; the steps are under <b>Getting updates</b> "
                                          "in your starter's README."),
+        ("Prefer notebooks?", 'The <a href="lab/">Lab</a> has every Python chapter as a Jupyter notebook, with tests '
+                              "and links to the solutions. Open one in Colab: nothing to install."),
         ("Your progress", "<code>PROGRESS.md</code> and the badge in your repo update on every push. Ticks in a workbook "
                           "are saved in this browser only."),
     ]
@@ -300,6 +344,7 @@ def main():
     counts = {t: {} for t in TRACKS}
     ids = {}  # track -> (first exercise, a sample exercise), as the starters' README uses them
     dsa_track = None
+    python_data = {}
     for t in TRACKS:
         for lang in LANGS:
             repo = args.src / f"{t}-{lang}-solutions"
@@ -314,12 +359,16 @@ def main():
                 dest = out / t / lang / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_text(page)
+            if lang == "python":
+                python_data[t] = data
             if t == "dsa" and lang == "python":
                 dsa_track = track
         (out / t / "index.html").write_text(section_page(t, counts[t], ids))
     (out / "dsa/guide").mkdir(parents=True, exist_ok=True)
     (out / "dsa/guide/index.html").write_text(guide_page(dsa_track))
     (out / "index.html").write_text(home_page(counts, dsa_track, ids))
+    (out / "lab").mkdir(exist_ok=True)
+    (out / "lab/index.html").write_text(lab_page(python_data))
     (out / "404.html").write_text(shell("Not found · BloomCode", "", '<section class="panel hero-site"><h1>Not <em>found</em></h1>'
                                         '<p>That page does not exist. Start from the <a href="/">home page</a>.</p></section>', 0))
     (out / ".nojekyll").write_text("")
