@@ -33,81 +33,81 @@ const GUIDE = {
   [
    "Cost and measurement",
    [
-    11,
-    12,
-    13
+    "1.1",
+    "1.2",
+    "1.3"
    ]
   ],
   [
    "Sequences",
    [
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27
+    "2.1",
+    "2.2",
+    "2.3",
+    "2.4",
+    "2.5",
+    "2.6",
+    "2.7"
    ]
   ],
   [
    "Sorting",
    [
-    31,
-    32,
-    33
+    "3.1",
+    "3.2",
+    "3.3"
    ]
   ],
   [
    "Hashing",
    [
-    41,
-    42,
-    43
+    "4.1",
+    "4.2",
+    "4.3"
    ]
   ],
   [
    "Trees",
    [
-    51,
-    52,
-    53,
-    54,
-    55,
-    56
+    "5.1",
+    "5.2",
+    "5.3",
+    "5.4",
+    "5.5",
+    "5.6"
    ]
   ],
   [
    "Graphs",
    [
-    61,
-    62,
-    63,
-    64
+    "6.1",
+    "6.2",
+    "6.3",
+    "6.4"
    ]
   ],
   [
    "Algorithm design",
    [
-    71,
-    72,
-    73,
-    74,
-    75
+    "7.1",
+    "7.2",
+    "7.3",
+    "7.4",
+    "7.5"
    ]
   ],
   [
    "Systems and scale",
    [
-    81,
-    82,
-    83
+    "8.1",
+    "8.2",
+    "8.3"
    ]
   ]
  ],
  "chapters": [
   {
-   "ch": 11,
+   "ch": "1.1",
    "title": "Counting steps: how cost grows with input",
    "short": "Counting steps",
    "idea": "Name N, count how often the innermost line runs, and let Big O keep only the part that grows fastest.",
@@ -196,10 +196,10 @@ const GUIDE = {
      "pitfall": "Calling a built-in inside a loop hides a loop: `contains`, `indexOf` or slicing on an array is O(N) each time."
     }
    ],
-   "ex": "11.1–11.16"
+   "ex": "1.1.1–1.1.16"
   },
   {
-   "ch": 12,
+   "ch": "1.2",
    "title": "Memory as a cost",
    "short": "Memory",
    "idea": "Count memory the way you count steps: how much extra space does the algorithm need as N grows?",
@@ -244,10 +244,10 @@ const GUIDE = {
      "pitfall": "\"No new array\" is not always O(1) space. Recursion and string building can still allocate O(N)."
     }
    ],
-   "ex": "12.1–12.5"
+   "ex": "1.2.1–1.2.5"
   },
   {
-   "ch": 13,
+   "ch": "1.3",
    "title": "Timing real code",
    "short": "Timing",
    "idea": "Big O predicts how time grows; a careful benchmark tells you the actual time, and checks the prediction.",
@@ -292,10 +292,10 @@ const GUIDE = {
      "pitfall": "Timing one run of fast code mostly measures the clock and the noise. Repeat until each batch takes at least milliseconds."
     }
    ],
-   "ex": "13.1–13.7"
+   "ex": "1.3.1–1.3.7"
   },
   {
-   "ch": 21,
+   "ch": "2.1",
    "title": "Arrays and dynamic arrays",
    "short": "Arrays",
    "idea": "The same data, organized differently, makes the same operation cost one step or a million.",
@@ -346,10 +346,10 @@ const GUIDE = {
      "pitfall": "Shift **from the end backwards** when inserting. Going forwards copies the same value into every slot."
     }
    ],
-   "ex": "21.1–21.26"
+   "ex": "2.1.1–2.1.26"
   },
   {
-   "ch": 22,
+   "ch": "2.2",
    "title": "Searching sorted data",
    "short": "Sorted search",
    "idea": "Keeping data sorted makes insertion slower and search exponentially faster.",
@@ -394,10 +394,10 @@ const GUIDE = {
      "pitfall": "Write `lo <= hi`, not `lo < hi`, or you skip the last remaining candidate. Always move past `mid` (`mid + 1`, `mid - 1`) or the loop can run forever."
     }
    ],
-   "ex": "22.1–22.16"
+   "ex": "2.2.1–2.2.16"
   },
   {
-   "ch": 23,
+   "ch": "2.3",
    "title": "Linked lists",
    "short": "Linked lists",
    "idea": "Nodes scattered in memory, joined by links: the same operations as an array, with the opposite costs.",
@@ -442,10 +442,10 @@ const GUIDE = {
      "pitfall": "Relink in the right order. If you set `current.next = node` first, you lose the rest of the list."
     }
    ],
-   "ex": "23.1–23.28"
+   "ex": "2.3.1–2.3.28"
   },
   {
-   "ch": 24,
+   "ch": "2.4",
    "title": "Stacks and queues",
    "short": "Stacks and queues",
    "idea": "Constrained structures are tools for ordering work: last in first out, or first in first out.",
@@ -490,10 +490,10 @@ const GUIDE = {
      "pitfall": "Removing from the front of a plain array is O(N), because everything shifts. Use a circular buffer, a linked list, or the language's deque."
     }
    ],
-   "ex": "24.1–24.20"
+   "ex": "2.4.1–2.4.20"
   },
   {
-   "ch": 25,
+   "ch": "2.5",
    "title": "Strings: counts, windows and palindromes",
    "short": "Strings",
    "idea": "Most string problems are array problems over characters: count letters in a table, slide a window, or grow outward from a centre.",
@@ -538,10 +538,10 @@ const GUIDE = {
      "pitfall": "Building a string with += inside a loop copies it every time in many languages. Collect the pieces and join once."
     }
    ],
-   "ex": "25.1–25.10"
+   "ex": "2.5.1–2.5.10"
   },
   {
-   "ch": 26,
+   "ch": "2.6",
    "title": "Two pointers and intervals",
    "short": "Two pointers",
    "idea": "Two indexes that only move inward or forward turn a quadratic search over pairs into one linear pass.",
@@ -586,10 +586,10 @@ const GUIDE = {
      "pitfall": "Two pointers from both ends rely on the array being sorted. On unsorted input, sort first or use a hash table."
     }
    ],
-   "ex": "26.1–26.14"
+   "ex": "2.6.1–2.6.14"
   },
   {
-   "ch": 27,
+   "ch": "2.7",
    "title": "Grids and matrices",
    "short": "Grids",
    "idea": "A grid is an array of rows: index it as grid[row][col], walk it by bounds, and reuse its own cells as scratch space.",
@@ -634,10 +634,10 @@ const GUIDE = {
      "pitfall": "grid[row][col] is row first. Swapping the two indexes works on square grids and fails silently on rectangles."
     }
    ],
-   "ex": "27.1–27.7"
+   "ex": "2.7.1–2.7.7"
   },
   {
-   "ch": 31,
+   "ch": "3.1",
    "title": "Simple sorts: bubble, selection and insertion",
    "short": "Simple sorts",
    "idea": "Three ways to sort by repeated small steps: each is O(N²) in the worst case, and each has a case where it shines.",
@@ -755,10 +755,10 @@ const GUIDE = {
      "pitfall": "Save the value in `temp` **before** shifting, because the first shift overwrites its slot."
     }
    ],
-   "ex": "31.1–31.16"
+   "ex": "3.1.1–3.1.16"
   },
   {
-   "ch": 32,
+   "ch": "3.2",
    "title": "Divide and conquer: mergesort, quicksort and quickselect",
    "short": "Divide and conquer",
    "idea": "Split the input, solve the parts, combine: quicksort splits carefully, mergesort combines carefully.",
@@ -807,7 +807,7 @@ const GUIDE = {
      "body": [
       "**Merge** walks two sorted lists with one finger in each, repeatedly taking the smaller front value. Every comparison places one value, so merging N + M items takes at most N + M − 1 comparisons.",
       "**Mergesort** splits the array in half, sorts each half recursively, and merges the results. There are log₂ N levels of halving, and each level merges N values in total, so the cost is O(N log N) on **every** input. Quicksort cannot promise that.",
-      "The price is O(N) extra space for merging. In return mergesort is **stable**: equal keys keep their original order, provided ties take from the left list. It also merges data that arrives in pieces, which is the basis of sorting files bigger than memory (Chapter 82)."
+      "The price is O(N) extra space for merging. In return mergesort is **stable**: equal keys keep their original order, provided ties take from the left list. It also merges data that arrives in pieces, which is the basis of sorting files bigger than memory (Chapter 8.2)."
      ],
      "model": [
       "Top-down: split, recurse, merge. Bottom-up: merge runs of width 1, 2, 4, … with no recursion.",
@@ -842,10 +842,10 @@ const GUIDE = {
      "pitfall": "Using `<` instead of `<=` in the merge still sorts correctly but breaks stability, and the bug only shows up when records have equal keys."
     }
    ],
-   "ex": "32.1–32.16"
+   "ex": "3.2.1–3.2.16"
   },
   {
-   "ch": 33,
+   "ch": "3.3",
    "title": "Linear-time sorts",
    "short": "Linear sorts",
    "idea": "Comparison sorts cannot beat N log N, but sorts that use the keys themselves as indexes can run in linear time.",
@@ -890,10 +890,10 @@ const GUIDE = {
      "pitfall": "Counting sort's cost includes K. Ten values between 0 and a billion need a billion counters, so use a comparison sort there."
     }
    ],
-   "ex": "33.1–33.4"
+   "ex": "3.3.1–3.3.4"
   },
   {
-   "ch": 41,
+   "ch": "4.1",
    "title": "Hash tables",
    "short": "Hash tables",
    "idea": "A hash function turns a key into an array index, so finding a value takes one step on average.",
@@ -909,7 +909,7 @@ const GUIDE = {
       "Lookup: hash the key, go to that bucket, scan its short chain.",
       "Keep the load factor (items ÷ buckets) around 0.7 or below; grow and rehash beyond that.",
       "A set is a hash table with keys only.",
-      "Worst case is O(N), when every key collides, so a good hash function matters (Chapter 42)."
+      "Worst case is O(N), when every key collides, so a good hash function matters (Chapter 4.2)."
      ],
      "widget": "hashTable",
      "pseudo": "function put(table, key, value):\n    bucket = table.buckets[hash(key) mod length(table.buckets)]\n    for each pair in bucket:\n        if pair.key == key:\n            pair.value = value; return\n    append (key, value) to bucket\n\nfunction isSubset(small, big):        // O(N + M) instead of O(N × M)\n    seen = new set of big\n    for each x in small:\n        if x not in seen: return false\n    return true",
@@ -938,10 +938,10 @@ const GUIDE = {
      "pitfall": "Hash tables do not keep any useful order. If you need sorted keys, sort them, or use a tree."
     }
    ],
-   "ex": "41.1–41.17"
+   "ex": "4.1.1–4.1.17"
   },
   {
-   "ch": 42,
+   "ch": "4.2",
    "title": "Hash functions",
    "short": "Hash functions",
    "idea": "Any fixed hash function has inputs that crush it; choosing the function at random removes them.",
@@ -986,10 +986,10 @@ const GUIDE = {
      "pitfall": "`a·k` needs more than 64 bits when p is near 2⁶¹. Use a 128-bit product (or reduce cleverly), or the hash silently loses its guarantees."
     }
    ],
-   "ex": "42.1–42.8"
+   "ex": "4.2.1–4.2.8"
   },
   {
-   "ch": 43,
+   "ch": "4.3",
    "title": "Rolling hashes and text search",
    "short": "Text search",
    "idea": "Hash every window of the text in O(1) each by rolling the hash, and compare hashes instead of strings.",
@@ -1034,10 +1034,10 @@ const GUIDE = {
      "pitfall": "After subtracting, the value can go negative, and `%` keeps the sign in most languages. Add p before taking the remainder."
     }
    ],
-   "ex": "43.1–43.10"
+   "ex": "4.3.1–4.3.10"
   },
   {
-   "ch": 51,
+   "ch": "5.1",
    "title": "Binary search trees",
    "short": "Search trees",
    "idea": "Ordered like a sorted array, but inserting and deleting take O(log N) when the tree is balanced.",
@@ -1047,7 +1047,7 @@ const GUIDE = {
      "body": [
       "In a binary search tree every node's **left** subtree holds smaller values and its **right** subtree larger ones. Search compares with the root and goes left or right, discarding a whole subtree each step, like binary search.",
       "Insert follows the same path and hangs the new node where the search fell off the tree. Delete has three cases: a leaf is simply removed; a node with one child is replaced by that child; a node with two children is replaced by its **successor**, the leftmost node of its right subtree.",
-      "All of this is O(log N) only while the tree is balanced. Insert sorted values and every node goes right: the tree becomes a linked list and everything is O(N). Chapter 54 fixes that with red-black trees and treaps."
+      "All of this is O(log N) only while the tree is balanced. Insert sorted values and every node goes right: the tree becomes a linked list and everything is O(N). Chapter 5.4 fixes that with red-black trees and treaps."
      ],
      "model": [
       "Smaller goes left, bigger goes right, at every node.",
@@ -1082,10 +1082,10 @@ const GUIDE = {
      "pitfall": "Checking only `left.value < node.value < right.value` does not validate a BST. Every value in the left subtree must be smaller, so pass down lower and upper bounds."
     }
    ],
-   "ex": "51.1–51.16"
+   "ex": "5.1.1–5.1.16"
   },
   {
-   "ch": 52,
+   "ch": "5.2",
    "title": "Heaps and priority queues",
    "short": "Heaps",
    "idea": "A complete tree where every parent outranks its children: the top is always the highest priority.",
@@ -1135,10 +1135,10 @@ const GUIDE = {
      "pitfall": "parent(i) is `(i − 1) / 2` with integer division. Using `i / 2` works for 1-based arrays, not 0-based ones."
     }
    ],
-   "ex": "52.1–52.10"
+   "ex": "5.2.1–5.2.10"
   },
   {
-   "ch": 53,
+   "ch": "5.3",
    "title": "Tries",
    "short": "Tries",
    "idea": "A tree of characters: words sharing a prefix share a path, so prefix search costs the prefix length.",
@@ -1178,10 +1178,10 @@ const GUIDE = {
      "pitfall": "Reaching the last character's node does not mean the word exists. Check for the end marker."
     }
    ],
-   "ex": "53.1–53.16"
+   "ex": "5.3.1–5.3.16"
   },
   {
-   "ch": 54,
+   "ch": "5.4",
    "title": "Self-balancing trees: red-black trees and treaps",
    "short": "Balanced trees",
    "idea": "Keep a search tree's height logarithmic whatever order the keys arrive in: colour rules, or random priorities.",
@@ -1265,10 +1265,10 @@ const GUIDE = {
      "pitfall": "Rotating a child up must also return the new subtree root to the parent's link. Dropping the return value detaches part of the tree."
     }
    ],
-   "ex": "54.1–54.15"
+   "ex": "5.4.1–5.4.15"
   },
   {
-   "ch": 55,
+   "ch": "5.5",
    "title": "B-trees and block storage",
    "short": "B-trees",
    "idea": "On disk, reading a block costs far more than computing on it, so make each node one block holding many keys.",
@@ -1313,10 +1313,10 @@ const GUIDE = {
      "pitfall": "Splitting after inserting (bottom-up) can cascade back up the tree. Proactive splitting on the way down needs only one pass."
     }
    ],
-   "ex": "55.1–55.9"
+   "ex": "5.5.1–5.5.9"
   },
   {
-   "ch": 56,
+   "ch": "5.6",
    "title": "Binary trees",
    "short": "Binary trees",
    "idea": "A recursive function on a tree returns one fact about a subtree, and the parent combines the answers from its two children.",
@@ -1361,10 +1361,10 @@ const GUIDE = {
      "pitfall": "Computing a child's height again inside every parent makes a balance check O(N^2). Return the height from the same call that checks the balance."
     }
    ],
-   "ex": "56.1–56.18"
+   "ex": "5.6.1–5.6.18"
   },
   {
-   "ch": 61,
+   "ch": "6.1",
    "title": "Graphs: representation and traversal",
    "short": "Graph traversal",
    "idea": "Vertices joined by edges model any network; depth-first and breadth-first search visit it in O(V + E).",
@@ -1409,10 +1409,10 @@ const GUIDE = {
      "pitfall": "Mark a vertex visited when you first reach it, not when you leave it; otherwise a vertex reachable two ways is queued twice."
     }
    ],
-   "ex": "61.1–61.6"
+   "ex": "6.1.1–6.1.6"
   },
   {
-   "ch": 62,
+   "ch": "6.2",
    "title": "Shortest paths and ordering",
    "short": "Paths and order",
    "idea": "Fewest hops with breadth-first search, lowest cost with Dijkstra's algorithm, and an order that respects every dependency.",
@@ -1452,10 +1452,10 @@ const GUIDE = {
      "pitfall": "Dijkstra breaks with negative edge weights: a vertex marked done might later get cheaper. Negative weights need Bellman–Ford."
     }
    ],
-   "ex": "62.1–62.6"
+   "ex": "6.2.1–6.2.6"
   },
   {
-   "ch": 63,
+   "ch": "6.3",
    "title": "Union-find and spanning trees",
    "short": "Union-find",
    "idea": "A forest of parent links answers 'are these two in the same group?' in near-constant time, as long as groups only merge.",
@@ -1500,10 +1500,10 @@ const GUIDE = {
      "pitfall": "Union-find only merges. If groups ever have to split, or you need the path between two members, use a graph search instead."
     }
    ],
-   "ex": "63.1–63.8"
+   "ex": "6.3.1–6.3.8"
   },
   {
-   "ch": 64,
+   "ch": "6.4",
    "title": "Grid and implicit graphs",
    "short": "Implicit graphs",
    "idea": "Many graphs are never stored: the vertices are grid cells, board squares or words, and the edges are the moves between them.",
@@ -1548,10 +1548,10 @@ const GUIDE = {
      "pitfall": "Mark a cell visited when it is added to the queue, not when it is taken out, or the same cell can be queued many times."
     }
    ],
-   "ex": "64.1–64.9"
+   "ex": "6.4.1–6.4.9"
   },
   {
-   "ch": 71,
+   "ch": "7.1",
    "title": "Recursion",
    "short": "Recursion",
    "idea": "Solve a problem through a smaller copy of itself, then build the answer on the way back.",
@@ -1630,10 +1630,10 @@ const GUIDE = {
      "pitfall": "Slicing a fresh copy of the array on every call silently turns O(N) recursion into O(N²) time and memory. Pass an index instead."
     }
    ],
-   "ex": "71.1–71.19"
+   "ex": "7.1.1–7.1.19"
   },
   {
-   "ch": 72,
+   "ch": "7.2",
    "title": "Dynamic programming",
    "short": "Dynamic programming",
    "idea": "When a recursion keeps re-solving the same subproblems, solve each one once.",
@@ -1678,10 +1678,10 @@ const GUIDE = {
      "pitfall": "A memo that is re-created on every call (a fresh empty map inside the function) memoizes nothing. Pass one map down, or keep it outside."
     }
    ],
-   "ex": "72.1–72.20"
+   "ex": "7.2.1–7.2.20"
   },
   {
-   "ch": 73,
+   "ch": "7.3",
    "title": "Greedy choices and problem transforms",
    "short": "Greedy and transforms",
    "idea": "Aim for the lower bound, then reach it with a lookup table, a sliding window, a greedy rule or a precomputed summary.",
@@ -1726,10 +1726,10 @@ const GUIDE = {
      "pitfall": "Look up first, then add. Adding the current item to the table before checking it lets an item pair with itself."
     }
    ],
-   "ex": "73.1–73.17"
+   "ex": "7.3.1–7.3.17"
   },
   {
-   "ch": 74,
+   "ch": "7.4",
    "title": "Randomized algorithms",
    "short": "Randomized",
    "idea": "Use randomness to shuffle, sample, balance and estimate, and to test primes fast with a tiny chance of error.",
@@ -1813,10 +1813,10 @@ const GUIDE = {
      "pitfall": "`a * b mod n` overflows 64 bits once n passes about 3 × 10⁹. Use 128-bit multiplication or big integers inside powMod."
     }
    ],
-   "ex": "74.1–74.17"
+   "ex": "7.4.1–7.4.17"
   },
   {
-   "ch": 75,
+   "ch": "7.5",
    "title": "Backtracking",
    "short": "Backtracking",
    "idea": "Build a solution one choice at a time, undo the last choice when it leads nowhere, and prune branches that cannot succeed.",
@@ -1861,10 +1861,10 @@ const GUIDE = {
      "pitfall": "Forgetting to undo a choice leaks it into the next branch. Every add before the recursive call needs a matching remove after it."
     }
    ],
-   "ex": "75.1–75.7"
+   "ex": "7.5.1–7.5.7"
   },
   {
-   "ch": 81,
+   "ch": "8.1",
    "title": "Caching and eviction",
    "short": "Caching",
    "idea": "Keep recently used data close; when the cache is full, the eviction policy decides your hit rate.",
@@ -1909,10 +1909,10 @@ const GUIDE = {
      "pitfall": "Updating an existing key must also move it to the front. Otherwise it gets evicted as if it were stale."
     }
    ],
-   "ex": "81.1–81.8"
+   "ex": "8.1.1–8.1.8"
   },
   {
-   "ch": 82,
+   "ch": "8.2",
    "title": "External memory: sorting data bigger than RAM",
    "short": "External sort",
    "idea": "Sort data bigger than memory by sorting memory-sized runs, then merging as many runs at once as memory allows.",
@@ -1957,10 +1957,10 @@ const GUIDE = {
      "pitfall": "A two-way merge wastes memory: with room for 100 blocks it still reads only 2 runs at a time, and needs many more passes over the disk."
     }
    ],
-   "ex": "82.1–82.7"
+   "ex": "8.2.1–8.2.7"
   },
   {
-   "ch": 83,
+   "ch": "8.3",
    "title": "Compact sets: bit vectors and Bloom filters",
    "short": "Compact sets",
    "idea": "Store a set in one bit per possible member, or approximately in far less with a Bloom filter.",
@@ -2044,7 +2044,7 @@ const GUIDE = {
      "pitfall": "A Bloom filter fills up. Insert far more than the n it was sized for and the false-positive rate climbs towards 100%."
     }
    ],
-   "ex": "83.1–83.17"
+   "ex": "8.3.1–8.3.17"
   }
  ],
  "summaries": [
@@ -2138,7 +2138,7 @@ const GUIDE = {
    ],
    "rows": [
     [
-     "Plain BST (Chapter 51)",
+     "Plain BST (Chapter 5.1)",
      "O(N)",
      "O(N)",
      "O(N)",

@@ -147,7 +147,7 @@
     </a>
     <label class="search" for="q">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-      <input id="q" type="search" placeholder="Search 146 exercises: bisect, sieve, 5.4…" autocomplete="off">
+      <input id="q" type="search" placeholder="Search {{TOTAL}} exercises: bisect, sieve, 5.4…" autocomplete="off">
     </label>
     <div class="chips" role="group" aria-label="Filter exercises">
       <button class="chip" data-level="Core" aria-pressed="false"><span class="dot" style="background:var(--core)"></span>Core</button>
@@ -157,7 +157,7 @@
     </div>
     <div class="meter" aria-live="polite">
       <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="fill" id="ring" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1"/></svg>
-      <div><div class="meter-num" id="doneNum">0 / 146</div><div class="meter-sub" id="donePct">0% done</div></div>
+      <div><div class="meter-num" id="doneNum">0 / {{TOTAL}}</div><div class="meter-sub" id="donePct">0% done</div></div>
     </div>
   </div>
 </header>
@@ -167,9 +167,9 @@
   <main>
     <section class="panel hero">
       <div>
-        <div class="eyebrow">146 exercises · 16 chapters · violet pen</div>
+        <div class="eyebrow">{{TOTAL}} exercises · {{CHAPTERS}} chapters · violet pen</div>
         <h1>The Python a contest <em>actually uses.</em></h1>
-        <p>Sixteen chapters of the language features, standard library and idioms competitive programmers lean on, from reading input fast to modular arithmetic. Solve each one, check it against the key, then tick it off.</p>
+        <p>{{CHAPTERS}} chapters of the language features, standard library and idioms competitive programmers lean on, from reading input fast to modular arithmetic, then errors, files and concurrency for code beyond the contest. Solve each one, check it against the key, then tick it off.</p>
         <div class="levels-row" id="levelsRow"></div>
         <div class="sync" id="sync"><i></i><span>Ticks are saved in this browser</span></div>
       </div>
@@ -337,7 +337,7 @@ document.addEventListener("click", ev => {
   const t = ev.target.closest(".tick");
   if (!t) return;
   const card = t.closest(".card"), id = card.dataset.id;
-  const ch = Number(id.split(".")[0]);
+  const ch = chapterOf(id);
   done.has(id) ? done.delete(id) : done.add(id);
   const finished = done.has(id) && chDone(ch) === chTotal(ch);
   paintAll(finished ? ch : undefined);
