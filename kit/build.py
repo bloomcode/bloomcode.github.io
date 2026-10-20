@@ -269,6 +269,10 @@ def lab_page(python_data):
 
 
 POSTS = (  # newest first: (slug, title, date, minutes to read, tags, summary); the body is kit/blog/<slug>.html
+    ("switch-settings", "Every on/off setting: counting in binary, reading bits and 2ⁿ growth", "2026-10-20", 14,
+     ("Python", "Bits", "Big O", "Fundamentals"),
+     "The ideas behind listing every setting of n switches (exercise 1.1.16): why there are 2ⁿ, binary place values, "
+     "reading a bit with v >> pos & 1, writing exactly n digits, three ways to generate the list and why it costs O(N · 2ᴺ)."),
     ("python-modulo", "Python's % operator: negative numbers, wrap-around and rotating arrays", "2026-10-20", 12,
      ("Python", "Arrays", "Fundamentals"),
      "Why -7 % 3 is 2 in Python but -1 in Java, Go and JavaScript, and how that one rule makes (i + k) % n rotate "

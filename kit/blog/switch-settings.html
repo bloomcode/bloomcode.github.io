@@ -1,0 +1,425 @@
+<nav class="toc" aria-label="In this post"><b>In this post</b><ol>
+  <li><a href="#problem">The problem</a></li>
+  <li><a href="#count">Why there are 2ⁿ settings</a></li>
+  <li><a href="#binary">Binary place values</a></li>
+  <li><a href="#bits">Reading one bit out of a number</a></li>
+  <li><a href="#write">Writing the bits left to right</a></li>
+  <li><a href="#ways">Three ways to list every setting</a></li>
+  <li><a href="#cost">What it costs</a></li>
+  <li><a href="#next">Where this comes back</a></li>
+  <li><a href="#quiz">Test yourself</a></li>
+  <li><a href="#sheet">Cheat sheet</a></li>
+</ol></nav>
+
+<div class="tldr"><span class="eyebrow">The short version</span>
+<p>Listing every setting of <code>n</code> on/off switches in increasing binary order is the same as counting from 0 to
+2ⁿ − 1 and writing each number in binary with exactly <code>n</code> digits.</p>
+<p>You need four ideas for that: why there are 2ⁿ settings, how binary place values work, how to read one bit out of a
+number (<code>v &gt;&gt; pos &amp; 1</code>), and why the answer costs O(N · 2ᴺ) however clever the code is.</p></div>
+
+<h2 id="problem"><span class="n">1</span>The problem</h2>
+<p>Exercise 1.1.16 in the DSA track asks for <code>switch_settings(n)</code>: every way to set <code>n</code> on/off
+switches, written as strings of <code>'0'</code> (off) and <code>'1'</code> (on), in increasing binary order. You build the
+strings yourself rather than with a formatting helper.</p>
+<pre><code class="language-python">switch_settings(2)    # ['00', '01', '10', '11']
+switch_settings(3)    # ['000', '001', '010', '011', '100', '101', '110', '111']
+switch_settings(0)    # ['']: no switches still leaves one setting, the empty one</code></pre>
+<div class="callout"><p><strong>Working on it now?</strong> Keep the exercise open in the
+<a href="/dsa/python/workbook.html#ex-1-1-16">workbook</a> (it's the same in
+<a href="/dsa/java/workbook.html#ex-1-1-16">Java</a> and <a href="/dsa/go/workbook.html#ex-1-1-16">Go</a>). This post
+teaches the ideas. Complete solutions are folded under <b>Show code</b>, so you choose when to look.</p></div>
+
+<h2 id="count"><span class="n">2</span>Why there are 2ⁿ settings</h2>
+<p>Each switch is on or off, whatever the others are doing. One switch gives 2 settings. Add a second and every one of
+those 2 settings appears twice, once with the new switch off and once with it on: 4. A third doubles it again: 8. With
+<code>n</code> switches you multiply 2 by itself <code>n</code> times, so there are 2 × 2 × … × 2 = <strong>2ⁿ</strong>
+settings.</p>
+<p>A tree shows it best. Each level decides one switch, trying 0 (off) before 1 (on), and each path from the root to a leaf
+is one complete setting.</p>
+
+<div class="widget" id="tree">
+  <div class="widget-head"><b>Decide one switch at a time</b><span>Pick a leaf to light up its path. Each level doubles the number of branches.</span></div>
+  <div class="controls">
+    <label class="ctl">Switches n <input type="range" name="n" min="1" max="4" value="3"><output></output></label>
+  </div>
+  <div class="stage"></div>
+  <div class="readout"></div>
+</div>
+
+<p>Read the leaves from top to bottom: 000, 001, 010, 011, 100 and so on. The tree hands you the settings already in
+increasing order, for two reasons. It always tries 0 before 1, and it decides the leftmost switch first, and the
+leftmost switch is the one worth the most. The next section explains why.</p>
+
+<h2 id="binary"><span class="n">3</span>Binary place values</h2>
+<p>In decimal, the digits of 345 are worth 100, 10 and 1, each place ten times the one to its right. Binary works the
+same way with two instead of ten: from the right, the places are worth 1, 2, 4, 8, 16 and so on, which is 2⁰, 2¹, 2²
+and up. A setting is a number. Add up the places whose switch is on:</p>
+<pre><code class="language-python">#  8  4  2  1      place values
+#  1  0  1  1      the setting '1011'
+#  8 +0 +2 +1  ==  11</code></pre>
+<p>With <code>n</code> switches the smallest value is all off (0) and the largest is all on, 2ⁿ − 1 (for 4 switches,
+1111 = 15 = 16 − 1). Every whole number in between appears exactly once. So <strong>"every setting in increasing binary
+order" just means counting from 0 to 2ⁿ − 1</strong>. Try it: toggle the switches, or count up one at a time.</p>
+
+<div class="widget" id="board">
+  <div class="widget-head"><b>A row of switches is a number</b><span>Tap a switch to flip it. +1 shows the carry: trailing 1s turn to 0 and the next 0 turns to 1.</span></div>
+  <div class="controls">
+    <label class="ctl">Switches n <input type="range" name="n" min="2" max="6" value="4"><output></output></label>
+  </div>
+  <div class="switches" role="group" aria-label="Switches"></div>
+  <div class="btns">
+    <button type="button" class="btn ghost" data-step="-1">− 1</button>
+    <button type="button" class="btn ghost" data-step="1">+ 1</button>
+    <button type="button" class="btn" data-count>▶ Count from 0</button>
+  </div>
+  <div class="readout"></div>
+  <div class="calc" aria-label="Each bit, read with a shift and a mask"></div>
+</div>
+
+<p>Counting past the top wraps back to all off: <code>(v + 1) % 2**n</code>. That's the same wrap-around as in the
+<a href="/blog/python-modulo/">post on Python's <code>%</code></a>.</p>
+<p>One detail matters for the exercise. As a plain number, 3 in binary is <code>11</code>. As a setting of 4 switches it's
+<code>0011</code>: the switches that are off on the left still count. Every string you return has exactly <code>n</code>
+characters.</p>
+
+<h2 id="bits"><span class="n">4</span>Reading one bit out of a number</h2>
+<p>Number the positions from the right, starting at 0, so position <code>pos</code> is worth 2<sup>pos</sup>. There are two
+ways to ask whether the switch at <code>pos</code> is on in the number <code>v</code>.</p>
+<h3>With division</h3>
+<p>Divide away the lower positions, then look at the last binary digit: <code>v // 2**pos % 2</code>. For 13 (1101) and
+position 2: <code>13 // 4</code> is 3 (11), and <code>3 % 2</code> is 1, so the switch is on. Calling
+<code>divmod(v, 2)</code> over and over peels off the bits from the right, one per call.</p>
+<h3>With a shift and a mask</h3>
+<p>Two operators do the same job directly on the bits:</p>
+<ul>
+  <li><code>v &gt;&gt; pos</code> shifts the bits right by <code>pos</code> places, and the lowest <code>pos</code> bits fall
+    off the end. For non-negative <code>v</code> it equals <code>v // 2**pos</code>.</li>
+  <li><code>x &amp; 1</code> keeps only the last bit, so it equals <code>x % 2</code>. The 1 is a <em>mask</em>: a number with a
+    1 only in the place you want to see.</li>
+</ul>
+<pre><code class="language-python">v = 13           # 1101
+v >> 2           # 3   (11): the two lowest bits fell off
+v >> 2 & 1       # 1   bit 2 is on
+v >> 1 & 1       # 0   bit 1 is off
+v // 4 % 2       # 1   the same question, answered with division
+1 << 4           # 16  a 1 shifted left 4 places: 2 ** 4</code></pre>
+<p>In Python <code>&gt;&gt;</code> binds tighter than <code>&amp;</code>, so <code>v &gt;&gt; pos &amp; 1</code> means
+<code>(v &gt;&gt; pos) &amp; 1</code>, and comparisons come after both, so <code>v &gt;&gt; pos &amp; 1 == 1</code> works too.
+<strong>Java is different:</strong> there <code>==</code> binds tighter than <code>&amp;</code>, so you must write
+<code>(v &gt;&gt; pos &amp; 1) == 1</code>. In Go, <code>&gt;&gt;</code> and <code>&amp;</code> share a precedence level
+and group left to right, so <code>v&gt;&gt;pos&amp;1</code> is fine. In Java and Go, <code>1 &lt;&lt; n</code> overflows
+once <code>n</code> reaches the width of the integer type (31 for a Java <code>int</code>), but by then the list wouldn't
+fit in memory anyway.</p>
+
+<h2 id="write"><span class="n">5</span>Writing the bits left to right</h2>
+<p>A string reads from the most valuable switch to the least, so you need positions <code>n − 1</code> down to 0:</p>
+<pre><code class="language-python">range(n - 1, -1, -1)    # n - 1, n - 2, ..., 1, 0: the stop is excluded, so it's -1
+reversed(range(n))      # the same positions, easier to read</code></pre>
+<p>Collect the characters in a list and join them once at the end with <code>"".join(chars)</code>. Each setting costs
+<code>n</code> steps to write whichever way you do it. The habit matters more in other languages: Java has
+<code>StringBuilder</code>, and Go fills a <code>[]byte</code>, where <code>'0' + bit</code> turns the bit into a character.</p>
+<p>The slips that trip people up most:</p>
+<ul>
+  <li><strong>Missing position 0.</strong> <code>range(n - 1, 0, -1)</code> stops before 0, so every string comes out one
+    character short.</li>
+  <li><strong>Losing the leading zeros.</strong> <code>bin(3)[2:]</code> is <code>'11'</code>, not <code>'0011'</code>.
+    Always write exactly <code>n</code> positions.</li>
+  <li><strong>Bits in reverse.</strong> If you read bits from the right with <code>divmod</code> or from
+    <code>pos = 0</code> upwards, reverse them before joining, or 1 comes out as <code>'1000'</code>.</li>
+  <li><strong>One setting short.</strong> <code>range(2 ** n - 1)</code> stops at 2ⁿ − 2 and misses all-on.
+    <code>range(2 ** n)</code> is right.</li>
+  <li><strong>Special-casing zero.</strong> There's no need: <code>range(2 ** 0)</code> is one value with no bits to write,
+    which gives <code>['']</code>, exactly what the test expects.</li>
+</ul>
+
+<h2 id="ways"><span class="n">6</span>Three ways to list every setting</h2>
+<p>All three produce the same list in the same order. Try writing one yourself before you open the code.</p>
+
+<h3>Count, then convert each number</h3>
+<p>Loop <code>v</code> from 0 to 2ⁿ − 1 and write each one out with the bit reading from section 4. This is the
+approach the exercise's Big O line describes.</p>
+<details><summary>Show code</summary>
+<pre><code class="language-python">def switch_settings(n):
+    out = []
+    for v in range(1 << n):                 # 0 .. 2**n - 1
+        chars = []
+        for pos in range(n - 1, -1, -1):    # most valuable switch first
+            chars.append("1" if v >> pos & 1 else "0")
+        out.append("".join(chars))
+    return out</code></pre></details>
+
+<h3>Grow the list by doubling</h3>
+<p>Take the list for <code>n − 1</code> switches. Put a new switch in front: first <code>'0'</code> before every old
+setting, then <code>'1'</code> before every old setting. The order stays increasing, because everything starting with 0 is
+smaller than everything starting with 1. This is section 2's doubling, turned into code.</p>
+
+<div class="widget" id="double">
+  <div class="widget-head"><b>One more switch, twice as many settings</b><span>The new switch goes in front: off for the top half, on for the bottom half.</span></div>
+  <div class="controls">
+    <label class="ctl">Switches n <input type="range" name="n" min="1" max="4" value="3"><output></output></label>
+  </div>
+  <div class="dbl"></div>
+</div>
+
+<details><summary>Show code</summary>
+<pre><code class="language-python">def switch_settings(n):
+    out = [""]                      # 0 switches: one empty setting
+    for _ in range(n):
+        out = ["0" + s for s in out] + ["1" + s for s in out]
+    return out</code></pre></details>
+
+<h3>Decide switch by switch (recursion)</h3>
+<p>Walk the tree from section 2. At each level, choose 0 and go deeper, then come back and choose 1. When every switch
+is decided, record the setting. This shape, choose, recurse, undo, is the heart of the
+<a href="/dsa/guide/#ch-7.1">recursion</a> and <a href="/dsa/guide/#ch-7.5">backtracking</a> chapters.</p>
+<details><summary>Show code</summary>
+<pre><code class="language-python">def switch_settings(n):
+    out = []
+
+    def choose(prefix):
+        if len(prefix) == n:
+            out.append(prefix)
+            return
+        choose(prefix + "0")    # off first, so the order stays increasing
+        choose(prefix + "1")
+
+    choose("")
+    return out</code></pre></details>
+
+<h3>Checking your answer</h3>
+<p>The standard library can produce the same list in one line. The exercise asks you to build the strings yourself, but
+the library is handy for testing your version against:</p>
+<pre><code class="language-python">import itertools
+expected = [format(v, f"0{n}b") for v in range(2 ** n)]                 # 'b' is binary, '0n' pads to n digits
+expected = ["".join(p) for p in itertools.product("01", repeat=n)]    # the same list
+assert switch_settings(n) == expected</code></pre>
+
+<h2 id="cost"><span class="n">7</span>What it costs</h2>
+<p>There are 2ⁿ settings and each takes <code>n</code> characters to write, so the work and the output are both
+<strong>O(N · 2ᴺ)</strong>. The exercise writes this as O(2ᴺ) with the N in brackets: the doubling is what dominates. No
+algorithm can beat it, because the answer itself is that long, and writing an answer takes at least as long as its
+length.</p>
+<p>Exponential growth is easy to underestimate. Each extra switch doubles everything, so ten extra switches multiply it by
+2¹⁰ = 1024. Slide to see:</p>
+
+<div class="widget" id="growth">
+  <div class="widget-head"><b>How fast 2ⁿ grows</b><span>Time and memory are rough estimates for the Python solution, measured on one laptop.</span></div>
+  <div class="controls">
+    <label class="ctl">Switches n <input type="range" name="n" min="1" max="40" value="20"><output></output></label>
+  </div>
+  <div class="readout"></div>
+</div>
+
+<p>On that laptop, 20 switches (about a million settings) took 0.75 seconds and 72 MB. 22 switches took 3.2 seconds and
+about 300 MB. At 30 switches the list alone would need roughly 85 GB. That's why problems that try every on/off
+combination are only practical for small <code>n</code>, typically 20 to 25 at most.</p>
+
+<h2 id="next"><span class="n">8</span>Where this comes back</h2>
+<p>A setting of <code>n</code> switches is also a <strong>subset</strong> of <code>n</code> items: switch <code>i</code> on means
+item <code>i</code> is chosen. Listing every setting lists every subset, which is how brute force over "every combination"
+works.</p>
+<pre><code class="language-python">items = ["tea", "toast", "eggs"]
+for s in switch_settings(len(items)):
+    chosen = [x for x, bit in zip(items, s) if bit == "1"]
+    # '000' -> [], '101' -> ['tea', 'eggs'], '111' -> all three</code></pre>
+<p>The same ideas run through later chapters. Backtracking builds subsets switch by switch and prunes branches that can't
+work. Bit vectors pack many on/off flags into one number and read them with the same <code>&gt;&gt;</code> and
+<code>&amp;</code>. The <a href="/dsa/guide/#ch-8.3">compact sets chapter</a> covers those.</p>
+
+<h2 id="quiz"><span class="n">9</span>Test yourself</h2>
+<p>Work out each answer before you check it. Type the value and press <kbd>Enter</kbd> (strings work with or without
+quotes).</p>
+<div class="widget" id="quiz-w">
+  <div class="widget-head"><b>Predict the result</b><span class="score" aria-live="polite"></span></div>
+  <div class="quiz"></div>
+</div>
+
+<h2 id="sheet"><span class="n">10</span>Cheat sheet</h2>
+<div class="sheet">
+  <div><span>Settings of n switches</span><span><code>2 ** n</code>, the same as <code>1 &lt;&lt; n</code></span></div>
+  <div><span>Increasing binary order</span><span>Count <code>v</code> from 0 to 2ⁿ − 1</span></div>
+  <div><span>Bit <code>pos</code> of <code>v</code> (0 is rightmost)</span><span><code>v &gt;&gt; pos &amp; 1</code>, or <code>v // 2**pos % 2</code></span></div>
+  <div><span>Positions left to right</span><span><code>range(n - 1, -1, -1)</code></span></div>
+  <div><span>Setting back to a number</span><span><code>int("1011", 2) == 11</code></span></div>
+  <div><span>Check your list</span><span><code>format(v, f"0{n}b")</code>, <code>itertools.product("01", repeat=n)</code></span></div>
+  <div><span>Cost</span><span>O(N · 2ᴺ): each extra switch doubles it</span></div>
+  <div><span>Setting as a subset</span><span>Bit i on means item i is chosen</span></div>
+</div>
+
+<div class="post-foot">
+  <p>Now try it: <a href="/dsa/python/workbook.html#ex-1-1-16">exercise 1.1.16 in the workbook</a>, then compare with the
+  <a href="/dsa/python/answer-key.html#ex-1-1-16">answer key</a>. The <a href="/dsa/guide/#ch-1.1">concept guide's chapter
+  1.1</a> covers counting steps and naming growth with Big O.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(() => {
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  const c = name => `style="fill:var(--${name})"`;
+  const bits = (v, n) => { let s = ""; for (let pos = n - 1; pos >= 0; pos--) s += (v >> pos) & 1; return s; };
+  const width = el => Math.max(300, Math.min(720, Math.round(el.clientWidth || 640)));
+
+  // A range input that shows its value in the <output> next to it.
+  function slider(host, draw) {
+    const inp = $(".ctl input", host), out = $(".ctl output", host);
+    const sync = () => { out.textContent = inp.value; };
+    inp.addEventListener("input", () => { sync(); draw(); });
+    sync();
+    return inp;
+  }
+
+  /* 2. The choice tree */
+  (host => {
+    const stage = $(".stage", host), out = $(".readout", host);
+    let picked = null;
+    const nIn = slider(host, () => { picked = null; draw(); });
+    function draw() {
+      const n = +nIn.value, L = 1 << n, W = width(stage), P = 18, labelW = 96, rh = 30, top = 22;
+      const H = top + L * rh + 6, colW = (W - P - labelW - 12) / n;
+      const X = d => P + d * colW, Y = (d, p) => top + (p + 0.5) * (L >> d) * rh;      // node p at depth d covers L >> d leaves
+      const onPath = (d, p) => picked !== null && (picked >> (n - d)) === p;
+      let g = "";
+      for (let d = 0; d < n; d++) g += `<text x="${(X(d) + colW / 2).toFixed(1)}" y="12" text-anchor="middle" font-size="11" ${c("ink-3")}>${colW < 72 ? "#" : "switch "}${d + 1}</text>`;
+      for (let d = 0; d < n; d++) for (let p = 0; p < 1 << d; p++) for (const b of [0, 1]) {
+        const q = p * 2 + b, hot = onPath(d + 1, q), x1 = X(d), y1 = Y(d, p), x2 = X(d + 1), y2 = Y(d + 1, q);
+        g += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" style="stroke:var(--${hot ? "pen" : "rule"});stroke-width:${hot ? 3 : 1.5}"/>`
+          + `<text x="${(x1 + 0.4 * (x2 - x1)).toFixed(1)}" y="${(y1 + 0.4 * (y2 - y1) + (b ? 14 : -6)).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" ${c(hot ? "pen" : b ? "practice" : "ink-3")}>${b}</text>`;
+      }
+      for (let d = 0; d < n; d++) for (let p = 0; p < 1 << d; p++)
+        g += `<circle cx="${X(d).toFixed(1)}" cy="${Y(d, p).toFixed(1)}" r="5" ${c(onPath(d, p) ? "pen" : "ink-3")}/>`;
+      for (let v = 0; v < L; v++) {
+        const hot = v === picked, y = Y(n, v);
+        g += `<g class="leaf" data-v="${v}" tabindex="0" role="button" aria-pressed="${hot}" aria-label="Setting ${bits(v, n)}, value ${v}" style="cursor:pointer">`
+          + `<rect x="${(X(n) - 6).toFixed(1)}" y="${(y - rh / 2 + 2).toFixed(1)}" width="${labelW + 10}" height="${rh - 4}" rx="6" style="fill:var(--${hot ? "pen" : "sheet"});stroke:var(--${hot ? "pen" : "rule"})"/>`
+          + `<text x="${(X(n) + 4).toFixed(1)}" y="${(y + 5).toFixed(1)}" font-size="14" font-weight="700" ${c(hot ? "pen-ink" : "ink")}>${bits(v, n)}</text>`
+          + `<text x="${(X(n) + labelW).toFixed(1)}" y="${(y + 5).toFixed(1)}" text-anchor="end" font-size="12" ${c(hot ? "pen-ink" : "ink-3")}>= ${v}</text></g>`;
+      }
+      stage.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="Choice tree for ${n} switches with ${L} leaves">${g}</svg>`;
+      $$(".leaf", stage).forEach(el => {
+        const pick = () => { picked = +el.dataset.v === picked ? null : +el.dataset.v; draw(); $(`.leaf[data-v="${picked}"]`, stage)?.focus(); };
+        el.addEventListener("click", pick);
+        el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+      });
+      out.innerHTML = `<div class="ro py"><b>Settings</b><div><code>${Array(n).fill(2).join(" * ")} == 2 ** ${n} == </code><span class="big">${L}</span></div></div>`
+        + (picked === null ? "" : `<div class="ro"><b>Your pick</b><div><code>'${bits(picked, n)}'</code> is switch by switch `
+          + bits(picked, n).split("").map(b => (b === "1" ? "on" : "off")).join(", ")
+          + `. It sits at index ${picked} in the list, which is also its value in binary.</div></div>`);
+    }
+    let last = 0;
+    new ResizeObserver(() => { const w = width(stage); if (w !== last) { last = w; draw(); } }).observe(stage);
+  })($("#tree"));
+
+  /* 3. The switch board */
+  (host => {
+    const row = $(".switches", host), out = $(".readout", host), calc = $(".calc", host), countBtn = $("[data-count]", host);
+    let v = 5, timer = null;
+    const nIn = slider(host, () => { stop(); v &= (1 << +nIn.value) - 1; draw(); });
+    function stop() { clearInterval(timer); timer = null; countBtn.textContent = "▶ Count from 0"; }
+    function draw(changed = 0) {      // `changed` has a 1 in every position that just flipped
+      const n = +nIn.value, s = bits(v, n);
+      row.innerHTML = s.split("").map((b, i) => {
+        const pos = n - 1 - i;
+        return `<div class="sw"><small>pos ${pos}</small><button type="button" data-pos="${pos}" aria-pressed="${b === "1"}" aria-label="Switch worth ${1 << pos}"`
+          + ` class="${changed >> pos & 1 ? "flip" : ""}">${b}</button><b>${1 << pos}</b></div>`;
+      }).join("");
+      $$("button", row).forEach(btn => btn.addEventListener("click", () => { stop(); const old = v; v ^= 1 << +btn.dataset.pos; draw(old ^ v); }));
+      const on = [];
+      for (let pos = n - 1; pos >= 0; pos--) if (v >> pos & 1) on.push(1 << pos);
+      out.innerHTML = `<div class="ro py"><b>Value</b><div><code>'${s}'</code> is ${on.length ? on.join(" + ") : "nothing on"} = <span class="big">${v}</span>`
+        + `<br><span style="color:var(--ink-3)">Setting ${v + 1} of ${1 << n} in increasing order</span></div></div>`;
+      calc.innerHTML = Array.from({ length: n }, (_, i) => n - 1 - i)
+        .map(pos => `<span>${v} &gt;&gt; ${pos} &amp; 1 = ${v >> pos & 1}</span>`).join("");
+    }
+    function step(d) { const n = +nIn.value, old = v; v = (v + d + (1 << n)) % (1 << n); draw(old ^ v); }
+    $$("[data-step]", host).forEach(b => b.addEventListener("click", () => { stop(); step(+b.dataset.step); }));
+    countBtn.addEventListener("click", () => {
+      if (timer) { stop(); return; }
+      const old = v; v = 0; draw(old ^ v);
+      if (still.matches) return;
+      countBtn.textContent = "■ Stop";
+      timer = setInterval(() => { if (v === (1 << +nIn.value) - 1) { stop(); return; } step(1); }, 650);
+    });
+    draw();
+  })($("#board"));
+
+  /* 6. Doubling */
+  (host => {
+    const box = $(".dbl", host);
+    const nIn = slider(host, draw);
+    function draw() {
+      const n = +nIn.value, prev = Array.from({ length: 1 << (n - 1) }, (_, v) => bits(v, n - 1));
+      const li = (p, s) => `<li class="${p === "1" ? "one" : ""}"><i>${p}</i>${s}</li>`;
+      box.innerHTML = `<div><h4>${n - 1} switch${n - 1 === 1 ? "" : "es"}</h4><ol>${prev.map(s => `<li>${s || "''"}</li>`).join("")}</ol></div>`
+        + `<div class="arrow">'0' +<br>then<br>'1' +<br>→</div>`
+        + `<div><h4>${n} switch${n === 1 ? "" : "es"}</h4><ol>${prev.map(s => li("0", s)).join("")}${prev.map(s => li("1", s)).join("")}</ol></div>`;
+    }
+    draw();
+  })($("#double"));
+
+  /* 7. Growth */
+  (host => {
+    const out = $(".readout", host);
+    const nIn = slider(host, draw);
+    const big = x => (x < 1e15 ? Math.round(x).toLocaleString("en-US") : x.toExponential(2).replace("e+", " × 10^"));
+    const bytes = b => { const u = ["bytes", "KB", "MB", "GB", "TB", "PB"]; let i = 0; while (b >= 1000 && i < u.length - 1) { b /= 1000; i++; } return `${b < 10 && i ? b.toFixed(1) : Math.round(b)} ${u[i]}`; };
+    const time = s => s < 1e-3 ? "under a millisecond" : s < 1 ? `about ${Math.round(s * 1000)} ms` : s < 120 ? `about ${s.toFixed(1)} seconds`
+      : s < 7200 ? `about ${Math.round(s / 60)} minutes` : s < 172800 ? `about ${Math.round(s / 3600)} hours` : s < 3.15e7 * 2 ? `about ${Math.round(s / 86400)} days` : `about ${big(s / 3.15e7)} years`;
+    function draw() {
+      const n = +nIn.value, count = 2 ** n, chars = n * count;
+      const secs = 0.75 * chars / (20 * 2 ** 20), mem = (49 + n) * count;     // measured: 0.75 s and 69 bytes per setting at n = 20
+      const verdict = mem < 2e9 ? "Fine on a laptop." : mem < 64e9 ? "Only on a big machine, and slowly." : "Not happening: the list doesn't fit in memory.";
+      out.innerHTML = `<div class="ro py"><b>Settings</b><div><code>2 ** ${n} == </code><span class="big">${big(count)}</span></div></div>`
+        + `<div class="ro"><b>Characters</b><div>${n} × ${big(count)} = ${big(chars)}</div></div>`
+        + `<div class="ro ${mem < 2e9 ? "ok" : "bad"}"><b>In Python</b><div>${time(secs)} and ${bytes(mem)}. ${verdict}</div></div>`;
+    }
+    draw();
+  })($("#growth"));
+
+  /* 9. Quiz */
+  (host => {
+    const QS = [
+      ["len(switch_settings(5))", "32", "2 ** 5: five doublings."],
+      ["switch_settings(3)[6]", "110", "Index 6 holds the number 6, which is 4 + 2: 110."],
+      ["13 >> 2 & 1", "1", "13 is 1101. Shifting right by 2 leaves 11 (3), and its last bit is 1."],
+      ["1 << 4", "16", "A 1 moved four places left is 10000, which is 2 ** 4."],
+      ['switch_settings(4).index("1011")', "11", "The list is in counting order, so the index is the value: 8 + 2 + 1."],
+      ["len(switch_settings(0))", "1", "2 ** 0 is 1: the single empty setting ''."],
+      ["6 & 1", "0", "6 is 110. Its last bit is 0, so 6 is even."],
+      ['int("0111", 2)', "7", "4 + 2 + 1. The leading 0 adds nothing."],
+      ["sum(len(s) for s in switch_settings(10))", "10240", "1024 settings × 10 characters each: the N in O(N · 2ᴺ)."],
+      ["(7 + 1) % 2 ** 3", "0", "Counting past 111 wraps around to 000."],
+    ];
+    const box = $(".quiz", host), score = $(".score", host), done = new Map();
+    const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    box.innerHTML = QS.map(([e], i) => `<div class="q" data-i="${i}"><code class="expr">${esc(e)}</code>`
+      + `<form><input aria-label="Your answer for ${esc(e)}" autocomplete="off" spellcheck="false" placeholder="?"><button class="btn">Check</button></form>`
+      + `<div class="fb" aria-live="polite"></div><button type="button" class="show">Show answer</button></div>`).join("");
+    const tally = () => { score.textContent = done.size ? `${[...done.values()].filter(Boolean).length} of ${QS.length} right first time` : ""; };
+    $$(".q", box).forEach(q => {
+      const [, ans, why] = QS[+q.dataset.i], inp = $("input", q), fb = $(".fb", q);
+      const tell = (ok, revealed) => {
+        q.classList.toggle("right", ok); q.classList.toggle("wrong", !ok && !revealed);
+        fb.innerHTML = `${revealed ? "Answer" : ok ? "Right" : "Not quite"}: <b>${ans}</b>. ${why}`;
+        $(".show", q).hidden = true;
+      };
+      $("form", q).addEventListener("submit", ev => {
+        ev.preventDefault();
+        const raw = inp.value.trim().replace(/^['"]|['"]$/g, "").replace(/,/g, "");
+        if (!raw) return;
+        const ok = raw === ans;
+        if (!done.has(q.dataset.i)) done.set(q.dataset.i, ok);
+        tell(ok, false); tally();
+      });
+      $(".show", q).addEventListener("click", () => {
+        if (!done.has(q.dataset.i)) done.set(q.dataset.i, false);
+        tell(false, true); tally();
+      });
+    });
+  })($("#quiz-w"));
+
+  if (window.hljs) $$("pre code").forEach(el => hljs.highlightElement(el));
+})();
+</script>

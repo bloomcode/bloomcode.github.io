@@ -132,3 +132,36 @@
   .sheet div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .stage { padding: 6px 4px 2px; }
 }
+
+/* Notes, folded code */
+.callout { margin: 0 0 16px; padding: 14px 18px; border: 1px dashed var(--rule); border-radius: var(--radius); background: var(--sheet-2); }
+.post .callout p { margin: 0; font-size: 15px; }
+.post details { margin: 0 0 16px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet-2); overflow: hidden; }
+.post summary { cursor: pointer; padding: 10px 14px; font: 600 14px var(--body); color: var(--ink); }
+.post summary:hover { color: var(--pen); }
+.post details[open] summary { border-bottom: 1px solid var(--rule); }
+.post details pre { margin: 0; border-radius: 0; }
+.post details p { margin: 10px 14px; font-size: 14.5px; }
+
+/* Switch board */
+.switches { display: flex; justify-content: center; gap: 8px; padding: 14px 16px 6px; }
+.sw { flex: 1 1 0; max-width: 64px; min-width: 0; display: grid; gap: 4px; justify-items: center; }
+.sw small { font: 500 11px var(--mono); color: var(--ink-3); white-space: nowrap; }
+.sw button { width: 100%; height: 58px; border-radius: 10px; border: 2px solid var(--rule); background: var(--sheet); color: var(--ink-3);
+  font: 700 22px var(--mono); cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.sw button[aria-pressed="true"] { background: var(--pen); border-color: var(--pen); color: var(--pen-ink); }
+.sw button.flip { animation: flip 0.6s ease-out; }
+@keyframes flip { 0% { box-shadow: 0 0 0 4px var(--stretch); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.sw b { font: 700 13px var(--mono); color: var(--ink-2); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 6px 16px 10px; }
+.btn.ghost { color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); }
+
+/* Doubling lists */
+.dbl { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.4fr); gap: 10px; align-items: center; padding: 12px 16px 16px; }
+.dbl ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.dbl li { font: 600 14px var(--mono); padding: 3px 10px; border-radius: 6px; background: var(--sheet); border: 1px solid var(--rule); text-align: center; }
+.dbl li i { font-style: normal; color: var(--pen); }
+.dbl li.one i { color: var(--practice); }
+.dbl li.one { border-color: color-mix(in srgb, var(--practice) 45%, var(--rule)); }
+.dbl .arrow { font: 700 13px var(--mono); color: var(--ink-3); text-align: center; }
+.dbl h4 { margin: 0 0 6px; font: 600 12px var(--mono); color: var(--ink-3); text-align: center; }
