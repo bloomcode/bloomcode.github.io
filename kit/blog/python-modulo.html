@@ -1,0 +1,500 @@
+<nav class="toc" aria-label="In this post"><b>In this post</b><ol>
+  <li><a href="#what">What <code>%</code> computes</a></li>
+  <li><a href="#ring">Wrap-around: think of a clock</a></li>
+  <li><a href="#negative">Negative numbers</a></li>
+  <li><a href="#rotate">Rotating an array</a></li>
+  <li><a href="#patterns">Everyday patterns</a></li>
+  <li><a href="#languages">Coming from Java, Go, C or JavaScript</a></li>
+  <li><a href="#quiz">Test yourself</a></li>
+  <li><a href="#sheet">Cheat sheet</a></li>
+</ol></nav>
+
+<div class="tldr"><span class="eyebrow">The short version</span>
+<p><code>a % n</code> is the remainder after dividing <code>a</code> by <code>n</code>. In Python the result always has the
+same sign as <code>n</code>. So with a positive <code>n</code> you always get a number from 0 to n − 1, even when
+<code>a</code> is negative.</p>
+<p>That one property is why <code>(i + k) % n</code> rotates arrays and wraps indexes correctly in both directions.
+C, Java, Go and JavaScript give the remainder the sign of <code>a</code> instead, so their <code>-7 % 3</code> is −1 where
+Python's is 2.</p></div>
+
+<h2 id="what"><span class="n">1</span>What <code>%</code> computes</h2>
+<p>Divide 17 by 5: it goes in 3 times (that's 15) with 2 left over. <code>17 // 5</code> is the 3 and <code>17 % 5</code> is
+the 2. Python ties the two operators together with one rule that holds for every pair of integers, as long as
+<code>n</code> isn't 0:</p>
+<pre><code class="language-python">a == (a // n) * n + (a % n)    # always True
+
+17 // 5    # 3
+17 % 5     # 2,  because 17 == 3 * 5 + 2</code></pre>
+<p>So <code>a % n</code> is just <code>a - (a // n) * n</code>: what's left after you take away as many whole
+<code>n</code>s as fit. For positive numbers that's the remainder you learned at school.</p>
+<p>The surprises with negative numbers all come from one question: when <code>a / n</code> isn't a whole number, which way
+does <code>//</code> round? Python always rounds <strong>down</strong>, towards minus infinity, never towards zero. Keep
+that in mind; <a href="#negative">section 3</a> shows why it matters.</p>
+
+<h2 id="ring"><span class="n">2</span>Wrap-around: think of a clock</h2>
+<p>The number line goes on forever in both directions. <code>% n</code> folds it into a ring of <code>n</code> slots
+numbered 0 to n − 1. Start at slot 0 and walk <code>a</code> steps (forwards when <code>a</code> is positive, backwards
+when it's negative), and you stop on slot <code>a % n</code>. Because Python's answer always stays in 0 … n − 1, this works
+in both directions.</p>
+
+<div class="widget" id="clock">
+  <div class="widget-head"><b>Walk around a ring</b><span>Positive steps go clockwise and negative steps go back. Each lap draws further in.</span></div>
+  <div class="controls">
+    <label class="ctl">Slots n <input type="range" name="n" min="2" max="12" value="12"><output></output></label>
+    <label class="ctl">Steps a <input type="range" name="a" min="-36" max="36" value="-3"><output></output></label>
+    <button class="btn" type="button" data-walk>▶ Walk it</button>
+  </div>
+  <div class="presets"><span>Try</span>
+    <button type="button" data-set="12,-3">−3 on 12</button><button type="button" data-set="12,14">14 on 12</button>
+    <button type="button" data-set="12,-15">−15 on 12</button><button type="button" data-set="5,-7">−7 on 5</button>
+    <button type="button" data-set="3,-7">−7 on 3</button>
+  </div>
+  <div class="stage"></div>
+  <div class="readout"></div>
+</div>
+
+<p>Three hours before midnight on a 12-hour clock is 9 o'clock, and <code>-3 % 12 == 9</code>. The number of laps doesn't
+matter; only the leftover steps decide where you stop. That's why step counts of 2, 14 and −10 all land on the same slot
+of a 12-slot ring, and it's the whole trick behind rotating arrays.</p>
+
+<h2 id="negative"><span class="n">3</span>Negative numbers: round down, not toward zero</h2>
+<p>Take <code>-7 % 3</code>. The exact quotient is −2.33…, and the two ways of rounding it give two different answers:</p>
+<ul>
+  <li><strong>Python rounds down</strong>: <code>-7 // 3</code> is −3. The multiple of 3 it takes away is
+    3 × −3 = −9, which sits <em>below</em> −7. What's left is −7 − (−9) = <strong>2</strong>.</li>
+  <li><strong>C, Java, Go and JavaScript round toward zero</strong>: the quotient is −2. The multiple is −6, which sits
+    <em>above</em> −7, and what's left is −7 − (−6) = <strong>−1</strong>.</li>
+</ul>
+<p>On the number line, Python steps back from <code>a</code> to the nearest multiple of <code>n</code> at or below it
+(for a positive <code>n</code>) and measures forward from there. A distance measured forward is never negative.</p>
+
+<div class="widget" id="line">
+  <div class="widget-head"><b>Rounding down vs rounding toward zero</b><span>The shaded blocks are whole multiples of n. Each arrow runs from the chosen multiple to a, and its length is the remainder.</span></div>
+  <div class="controls">
+    <label class="ctl">a <input type="range" name="a" min="-20" max="20" value="-7"><output></output></label>
+    <label class="ctl">n <input type="range" name="n" min="1" max="9" value="3"><output></output></label>
+    <label class="check"><input type="checkbox" name="neg"> Negative n</label>
+    <label class="check"><input type="checkbox" name="cmp" checked> Show C / Java / Go / JS</label>
+  </div>
+  <div class="presets"><span>Try</span>
+    <button type="button" data-set="7,3,0">7 % 3</button><button type="button" data-set="-7,3,0">-7 % 3</button>
+    <button type="button" data-set="7,3,1">7 % -3</button><button type="button" data-set="-7,3,1">-7 % -3</button>
+    <button type="button" data-set="-9,3,0">-9 % 3</button><button type="button" data-set="-1,5,0">-1 % 5</button>
+  </div>
+  <div class="stage"></div>
+  <div class="readout"></div>
+</div>
+
+<p>Line up <code>i % 3</code> for a run of <code>i</code> values and the difference jumps out. In Python the pattern
+0, 1, 2 carries on straight through zero. With rounding toward zero it flips into a mirror image for negative
+<code>i</code>, and that mirror image is what breaks wrap-around code in those languages.</p>
+<div class="tbl-wrap strip" data-n="3" data-lo="-5" data-hi="5"></div>
+
+<h3>The four sign combinations</h3>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>a</th><th>n</th><th>a // n</th><th>Python</th><th class="wrap">C, Java, Go, JS</th></tr></thead>
+  <tbody>
+    <tr><td><code>7</code></td><td><code>3</code></td><td><code>2</code></td><td class="py">1</td><td>1</td></tr>
+    <tr><td><code>-7</code></td><td><code>3</code></td><td><code>-3</code></td><td class="py">2</td><td class="tr">−1</td></tr>
+    <tr><td><code>7</code></td><td><code>-3</code></td><td><code>-3</code></td><td class="py">−2</td><td class="tr">1</td></tr>
+    <tr><td><code>-7</code></td><td><code>-3</code></td><td><code>2</code></td><td class="py">−1</td><td>−1</td></tr>
+  </tbody>
+</table></div>
+<p>The rule of thumb: <strong>in Python the remainder takes the sign of the divisor <code>n</code></strong> (or is 0). In
+the truncating languages it takes the sign of <code>a</code>. The two agree only when <code>a</code> and <code>n</code>
+have the same sign. You'll rarely divide by a negative number in practice. The case that bites is the second row, a
+negative <code>a</code> with a positive <code>n</code>, and that's exactly what you get from <code>i - 1</code> at index 0
+or from rotating left.</p>
+
+<h3>A few more facts</h3>
+<pre><code class="language-python">divmod(-7, 3)      # (-3, 2): the quotient and remainder in one call
+-5.5 % 2           # 0.5: floats follow the same rule
+math.fmod(-7, 3)   # -1.0: the round-toward-zero remainder, if you want it
+7 % 0              # ZeroDivisionError</code></pre>
+
+<h2 id="rotate"><span class="n">4</span>Rotating an array</h2>
+<p>Rotating right by <code>k</code> moves every element <code>k</code> places to the right, and anything that falls off
+the end comes back in at the start. With <code>a = ['A', 'B', 'C', 'D', 'E', 'F']</code> and <code>k = 2</code> you get
+<code>['E', 'F', 'A', 'B', 'C', 'D']</code>.</p>
+<p>Where does the element at index <code>i</code> go? To <code>i + k</code>, folded back onto the array, which is
+<code>(i + k) % n</code>. That's the clock from section 2 with <code>n</code> slots.</p>
+<pre><code class="language-python">def rotate_right(a, k):
+    n = len(a)
+    out = [None] * n
+    for i, x in enumerate(a):
+        out[(i + k) % n] = x     # where does a[i] go?
+    return out</code></pre>
+<p>You can also ask the reverse question: which element lands at index <code>j</code>? The one that started at
+<code>(j - k) % n</code>, which gives the one-liner <code>[a[(j - k) % n] for j in range(n)]</code>. Here
+<code>j - k</code> is often negative, and Python's <code>%</code> still lands it inside the array.</p>
+
+<div class="widget" id="rotate-w">
+  <div class="widget-head"><b>Rotate right by k</b><span>Top row: before. Bottom row: after. Red lines wrap past the end of the array.</span></div>
+  <div class="controls">
+    <label class="ctl">Length n <input type="range" name="n" min="3" max="8" value="6"><output></output></label>
+    <label class="ctl">k <input type="range" name="k" min="-12" max="12" value="2"><output></output></label>
+  </div>
+  <div class="presets"><span>Try</span>
+    <button type="button" data-set="2">k = 2</button><button type="button" data-set="8">k = 8</button>
+    <button type="button" data-set="-2">k = −2 (left)</button><button type="button" data-set="0">k = 0</button>
+    <button type="button" data-set="-9">k = −9</button>
+  </div>
+  <div class="stage"></div>
+  <div class="calc" aria-label="Where each element goes"></div>
+  <div class="readout"></div>
+</div>
+
+<p><code>%</code> takes care of three awkward cases at once:</p>
+<ul>
+  <li><strong><code>k</code> bigger than <code>n</code>.</strong> Rotating 6 items by 8 is the same as rotating by 2,
+    because <code>8 % 6 == 2</code>. Each full lap puts every element back where it started.</li>
+  <li><strong>Negative <code>k</code>.</strong> Rotating left by 2 is rotating right by −2, and
+    <code>(i - 2) % n</code> stays between 0 and n − 1 because Python's <code>%</code> is never negative for a positive
+    <code>n</code>.</li>
+  <li><strong><code>k</code> of 0 or a multiple of <code>n</code>.</strong> <code>(i + 0) % n == i</code>, so nothing
+    moves.</li>
+</ul>
+
+<h3>The slicing version</h3>
+<pre><code class="language-python">def rotate_right(a, k):
+    if not a:
+        return []
+    s = -k % len(a)         # index of the element that ends up first
+    return a[s:] + a[:s]
+
+rotate_right(list("ABCDEF"), 2)    # ['E', 'F', 'A', 'B', 'C', 'D']
+rotate_right(list("ABCDEF"), -2)   # ['C', 'D', 'E', 'F', 'A', 'B']  (left by 2)
+rotate_right(list("ABCDEF"), 8)    # same as k = 2</code></pre>
+<p><code>-k % n</code> means <code>(-k) % n</code>, because unary minus binds tighter than <code>%</code>. For
+<code>k = 2</code> and <code>n = 6</code> that's 4, so the result is <code>a[4:] + a[:4]</code>. To rotate left by
+<code>k</code>, use <code>s = k % n</code>.</p>
+<p><strong>A common bug:</strong> the tempting <code>a[-k:] + a[:-k]</code> works while <code>k</code> stays between
+−n and n. Past that it quietly returns the list unchanged: for 6 items, <code>a[-8:]</code> is the whole list and
+<code>a[:-8]</code> is empty. The widget above marks it ✗ whenever that happens. Reduce <code>k</code> with
+<code>% n</code> first. And if you want this built in, <code>collections.deque</code> has <code>rotate(k)</code>, which
+rotates right for a positive <code>k</code>, left for a negative one, and accepts any size.</p>
+
+<h2 id="patterns"><span class="n">5</span>Everyday patterns</h2>
+<p>Once you see <code>%</code> as "fold onto a ring of n", it shows up all over interview problems and real code.</p>
+<div class="patterns">
+  <div class="pattern"><h3>Step around a ring</h3>
+<pre><code class="language-python">nxt = (i + 1) % n
+prv = (i - 1) % n    # at 0 this gives n - 1</code></pre>
+    <p>Round-robin turns, circular buffers, the neighbours of the last seat at a round table.</p>
+    <p class="warn">in Java and Go, <code>(i - 1) % n</code> is −1 when <code>i</code> is 0. Write <code>(i - 1 + n) % n</code> there.</p></div>
+  <div class="pattern"><h3>A rotated view, no copying</h3>
+<pre><code class="language-python">def at(a, start, i):
+    return a[(start + i) % len(a)]
+
+for i in range(2 * n):    # go round twice
+    x = a[i % n]</code></pre>
+    <p>Read the array as if it began at <code>start</code>. Circular-array problems often loop twice around like this.</p></div>
+  <div class="pattern"><h3>Days of the week</h3>
+<pre><code class="language-python">DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+DAYS[(2 + 10) % 7]    # 10 days after Wed: 'Sat'
+DAYS[(2 - 10) % 7]    # 10 days before Wed: 'Sun'</code></pre>
+    <p>Going back in time is just a negative offset.</p></div>
+  <div class="pattern"><h3>Even or odd</h3>
+<pre><code class="language-python">n % 2 == 1    # odd, negatives too, in Python
+n % 2 != 0    # odd, in every language</code></pre>
+    <p class="warn"><code>-3 % 2</code> is 1 in Python but −1 in Java, Go, C and JavaScript, so <code>n % 2 == 1</code> misses negative odd numbers there.</p></div>
+  <div class="pattern"><h3>Split a quantity</h3>
+<pre><code class="language-python">minutes, seconds = divmod(125, 60)    # 2, 5
+hours, minutes = divmod(minutes, 60)</code></pre>
+    <p class="warn"><code>divmod(-125, 60)</code> is <code>(-3, 55)</code>. That's correct floor arithmetic but a strange duration. Split <code>abs(x)</code> and put the sign back.</p></div>
+  <div class="pattern"><h3>Digits of a number</h3>
+<pre><code class="language-python">n % 10     # last digit: 1234 -> 4
+n // 10    # drop it:    1234 -> 123</code></pre>
+    <p class="warn"><code>-1234 % 10</code> is 6, not 4, because −1234 = 10 × −124 + 6. Work on <code>abs(n)</code>.</p></div>
+  <div class="pattern"><h3>Shift letters</h3>
+<pre><code class="language-python">def shift(c, k):
+    return chr((ord(c) - ord("a") + k) % 26 + ord("a"))
+
+shift("y", 3)     # 'b'
+shift("b", -3)    # 'y': undoing is a negative k</code></pre>
+    <p>The alphabet is a ring of 26. Python's <code>%</code> makes decoding free.</p></div>
+  <div class="pattern"><h3>Hash buckets</h3>
+<pre><code class="language-python">bucket = hash(key) % num_buckets    # always 0 .. num_buckets - 1</code></pre>
+    <p><code>hash()</code> can be negative, and Python's <code>%</code> still lands in range.</p>
+    <p class="warn">in Java, <code>h % m</code> can be negative and <code>Math.abs(h) % m</code> breaks for <code>Integer.MIN_VALUE</code>. Use <code>Math.floorMod(h, m)</code>.</p></div>
+</div>
+
+<h2 id="languages"><span class="n">6</span>Coming from Java, Go, C or JavaScript</h2>
+<p>If you switch between languages, this table is the one to remember. The last column gives Python's behaviour in each
+language, assuming <code>n</code> is positive.</p>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>Language</th><th><code>-7 % 3</code></th><th>Python-style remainder</th></tr></thead>
+  <tbody>
+    <tr><td>Python</td><td class="py">2</td><td><code>a % n</code></td></tr>
+    <tr><td>Java</td><td class="tr">−1</td><td><code>Math.floorMod(a, n)</code></td></tr>
+    <tr><td>Go</td><td class="tr">−1</td><td><code>((a % n) + n) % n</code></td></tr>
+    <tr><td>C, C++</td><td class="tr">−1</td><td><code>((a % n) + n) % n</code></td></tr>
+    <tr><td>JavaScript</td><td class="tr">−1</td><td><code>((a % n) + n) % n</code></td></tr>
+  </tbody>
+</table></div>
+<p>Going the other way, <code>math.fmod(a, n)</code> gives you the round-toward-zero remainder in Python, as a float.</p>
+
+<h2 id="quiz"><span class="n">7</span>Test yourself</h2>
+<p>Work out each answer before you check it. Type the number and press <kbd>Enter</kbd>.</p>
+<div class="widget" id="quiz-w">
+  <div class="widget-head"><b>Predict the result</b><span class="score" aria-live="polite"></span></div>
+  <div class="quiz"></div>
+</div>
+
+<h2 id="sheet"><span class="n">8</span>Cheat sheet</h2>
+<div class="sheet">
+  <div><span><code>a % n</code> with n &gt; 0</span><span>Always 0 … n − 1, whatever the sign of a</span></div>
+  <div><span>Sign of the result</span><span>Follows n in Python; follows a in C, Java, Go and JavaScript</span></div>
+  <div><span><code>a // n</code></span><span>Rounds down: <code>-7 // 2 == -4</code></span></div>
+  <div><span>Always true</span><span><code>a == (a // n) * n + a % n</code></span></div>
+  <div><span>Next and previous on a ring</span><span><code>(i + 1) % n</code>, <code>(i - 1) % n</code></span></div>
+  <div><span>Rotate right by k</span><span><code>out[(i + k) % n] = a[i]</code> or <code>a[-k % n:] + a[:-k % n]</code></span></div>
+  <div><span>Rotate left by k</span><span><code>a[k % n:] + a[:k % n]</code></span></div>
+  <div><span>Round-toward-zero remainder</span><span><code>math.fmod(a, n)</code></span></div>
+  <div><span>Python-style in Java, Go</span><span><code>Math.floorMod(a, n)</code>, <code>((a % n) + n) % n</code></span></div>
+</div>
+
+<div class="post-foot">
+  <p>Practise it: rotation, circular buffers and wrap-around indexes come up throughout the
+  <a href="/dsa/">DSA track</a>, with tests in Python, Java and Go. The <a href="/dsa/guide/">concept guide</a> walks
+  through the array chapters step by step.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(() => {
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const show = v => (v < 0 ? "−" + -v : String(v));             // a proper minus sign for prose and labels
+  const paren = v => (v < 0 ? `(${v})` : String(v));
+  const pyMod = (a, n) => a - n * Math.floor(a / n);             // Python: the quotient rounds down
+  const truncMod = (a, n) => a - n * Math.trunc(a / n);          // C, Java, Go, JS: the quotient rounds toward zero
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  const c = name => `style="fill:var(--${name})"`;
+  const s = (name, w = 2) => `style="stroke:var(--${name});stroke-width:${w}"`;
+  const width = el => Math.max(300, Math.min(720, Math.round(el.clientWidth || 640)));
+  const arrowDef = (id, color) => `<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--${color})"/></marker>`;
+
+  // Range inputs show their value in the <output> next to them.
+  function sliders(host, draw) {
+    $$("input", host).forEach(inp => inp.addEventListener("input", () => { sync(); draw(); }));
+    function sync() { $$(".ctl", host).forEach(l => { $("output", l).textContent = show(+$("input", l).value); }); }
+    sync();
+    return sync;
+  }
+  // Wide drawings use the stage's real width as their viewBox, so text stays the same size on a phone.
+  function onResize(el, draw) {
+    let last = 0;
+    new ResizeObserver(() => { const w = width(el); if (w !== last) { last = w; draw(); } }).observe(el);
+  }
+
+  /* 2. The ring */
+  (host => {
+    const nIn = $("[name=n]", host), aIn = $("[name=a]", host), stage = $(".stage", host), out = $(".readout", host);
+    const walkBtn = $("[data-walk]", host);
+    let shown = null, timer = null;
+    const sync = sliders(host, () => { stop(); fitRange(); draw(); });
+    function fitRange() {
+      const n = +nIn.value;
+      aIn.min = -3 * n; aIn.max = 3 * n;
+      if (+aIn.value > 3 * n) aIn.value = 3 * n;
+      if (+aIn.value < -3 * n) aIn.value = -3 * n;
+      sync();
+    }
+    function stop() { clearInterval(timer); timer = null; shown = null; walkBtn.textContent = "▶ Walk it"; }
+    function draw() {
+      const n = +nIn.value, a = +aIn.value, d = Math.sign(a), total = Math.abs(a);
+      const steps = shown ?? total, at = pyMod(d * steps, n), r = pyMod(a, n), q = Math.floor(a / n);
+      const C = 160, R = 124, nodeR = n > 9 ? 15 : 17, ang = i => (-90 + 360 * i / n) * Math.PI / 180;
+      const pt = (i, rad) => [C + rad * Math.cos(ang(i)), C + rad * Math.sin(ang(i))];
+      let g = `<defs>${arrowDef("ah-ring-f", "pen")}${arrowDef("ah-ring-b", "practice")}</defs>`;
+      g += `<circle cx="${C}" cy="${C}" r="${R}" style="fill:none;stroke:var(--rule);stroke-width:2"/>`;
+      for (let j = 0; j < steps; j++) {        // one arc per step; each lap sits further in
+        const lap = Math.floor(j / n), rad = R - 36 - lap * 10;
+        const [x1, y1] = pt(d * j, rad), [x2, y2] = pt(d * (j + 1), rad), last = j === steps - 1;
+        g += `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}A${rad} ${rad} 0 0 ${d > 0 ? 1 : 0} ${x2.toFixed(1)} ${y2.toFixed(1)}" `
+          + `style="fill:none;stroke:var(--${d > 0 ? "pen" : "practice"});stroke-width:3;opacity:${last ? 1 : 0.55}"`
+          + (last ? ` marker-end="url(#ah-ring-${d > 0 ? "f" : "b"})"` : "") + "/>";
+      }
+      for (let i = 0; i < n; i++) {
+        const [x, y] = pt(i, R), here = i === at;
+        g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${nodeR}" style="fill:var(--${here ? "pen" : "sheet"});stroke:var(--${here ? "pen" : i === 0 ? "ink" : "rule"});stroke-width:2"/>`
+          + `<text x="${x.toFixed(1)}" y="${(y + 5).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="700" ${c(here ? "pen-ink" : "ink")}>${i}</text>`;
+      }
+      g += `<text x="${C}" y="${C - R - nodeR - 7}" text-anchor="middle" font-size="11" ${c("ink-3")}>start</text>`;
+      g += `<text x="${C}" y="${C - 4}" text-anchor="middle" font-size="17" font-weight="700" ${c("ink")}>${shown === null ? `${show(a)} % ${n}` : `step ${steps}`}</text>`
+        + `<text x="${C}" y="${C + 20}" text-anchor="middle" font-size="17" font-weight="700" ${c("pen")}>${shown === null ? `= ${r}` : `of ${total}`}</text>`;
+      stage.innerHTML = `<svg viewBox="0 0 320 320" style="max-width:340px;margin:0 auto" role="img" aria-label="${show(a)} steps around a ring of ${n} slots lands on slot ${r}">${g}</svg>`;
+      const where = a < 0 ? `${-a} back` : `${a} forward`;
+      out.innerHTML = `<div class="ro py"><b>Python</b><div><code>${a} % ${n} == </code><span class="big">${r}</span>`
+        + (a !== r ? `<br>Walking ${where} lands where walking ${r} forward does.` : "") + `</div></div>`
+        + `<div class="ro"><b>Laps</b><div><code>${a} // ${n} == ${q}</code>, and <code>${a} == ${n} * ${paren(q)} + ${r}</code>`
+        + (q ? `<br>${Math.abs(q)} full lap${Math.abs(q) > 1 ? "s" : ""} ${q < 0 ? "backwards" : "forwards"}, then ${r} forward.` : "") + `</div></div>`;
+    }
+    walkBtn.addEventListener("click", () => {
+      const total = Math.abs(+aIn.value);
+      if (timer || still.matches || !total) { stop(); draw(); return; }
+      shown = 0; walkBtn.textContent = "■ Stop"; draw();
+      timer = setInterval(() => { if (++shown >= total) stop(); draw(); }, Math.max(80, Math.min(320, 2400 / total)));
+    });
+    $$("[data-set]", host).forEach(b => b.addEventListener("click", () => {
+      const [n, a] = b.dataset.set.split(",").map(Number);
+      stop(); nIn.value = n; fitRange(); aIn.value = a; sync(); draw();
+    }));
+    fitRange(); draw();
+  })($("#clock"));
+
+  /* 3. Rounding down vs toward zero */
+  (host => {
+    const aIn = $("[name=a]", host), nIn = $("[name=n]", host), negIn = $("[name=neg]", host), cmpIn = $("[name=cmp]", host);
+    const stage = $(".stage", host), out = $(".readout", host);
+    const sync = sliders(host, draw);
+    function draw() {
+      const A = +aIn.value, m = +nIn.value, N = negIn.checked ? -m : m, cmp = cmpIn.checked;
+      const qf = Math.floor(A / N) || 0, rf = A - qf * N, mf = qf * N;
+      const qt = Math.trunc(A / N) || 0, rt = A - qt * N, mt = qt * N;
+      const W = width(stage), P = 22, H = cmp ? 168 : 128, Y = 86, narrow = W < 480, span = narrow ? 10 : 14;
+      let lo = Math.min(0, A, mf, mt) - (narrow ? 1 : m + 1), hi = Math.max(0, A, mf, mt) + (narrow ? 1 : m + 1);
+      if (hi - lo < span) { const pad = Math.ceil((span - (hi - lo)) / 2); lo -= pad; hi += pad; }
+      const unit = (W - 2 * P) / (hi - lo), X = v => P + (v - lo) * unit;
+      let g = `<defs>${arrowDef("ah-py", "pen")}${arrowDef("ah-tr", "on2")}</defs>`;
+      for (let k = Math.floor(lo / m); k * m < hi; k++) {
+        const x1 = X(Math.max(lo, k * m)), x2 = X(Math.min(hi, (k + 1) * m));
+        if (k % 2 === 0) g += `<rect x="${x1.toFixed(1)}" y="${Y - 12}" width="${(x2 - x1).toFixed(1)}" height="24" style="fill:var(--pen-soft)"/>`;
+      }
+      g += `<line x1="${P}" y1="${Y}" x2="${W - P}" y2="${Y}" ${s("ink-3", 1.5)}/>`;
+      for (let v = Math.ceil(lo); v <= hi; v++) {
+        const big = v % m === 0;
+        g += `<line x1="${X(v).toFixed(1)}" y1="${Y - (big ? 10 : 4)}" x2="${X(v).toFixed(1)}" y2="${Y + (big ? 10 : 4)}" ${s(big ? "ink-2" : "ink-3", big ? 1.5 : 1)} opacity="${big ? 1 : 0.5}"/>`;
+      }
+      // Labels: every multiple that has room, always 0 and the chosen multiples, never two on top of each other.
+      const forced = [[mf, "pen"], ...(cmp && mt !== mf ? [[mt, "on2"]] : []), [0, "ink-2"]];
+      const labels = forced.filter((f, i) => forced.findIndex(o => o[0] === f[0]) === i);
+      const every = m * Math.max(1, Math.ceil(30 / (m * unit)));
+      for (let v = Math.ceil(lo / every) * every; v <= hi; v += every)
+        if (labels.every(([u]) => Math.abs(X(u) - X(v)) >= 28)) labels.push([v, "ink-3"]);
+      labels.forEach(([v, col]) => {
+        g += `<text x="${X(v).toFixed(1)}" y="${Y + 26}" text-anchor="middle" font-size="12" font-weight="${col === "ink-3" ? 500 : 700}" ${c(col)}>${show(v)}</text>`;
+      });
+      const xa = X(A).toFixed(1), tx = Math.min(W - 30, Math.max(30, X(A)));
+      g += `<line x1="${xa}" y1="22" x2="${xa}" y2="${cmp ? H - 34 : Y}" ${s("ink", 1.2)} stroke-dasharray="3 3"/>`
+        + `<text x="${tx.toFixed(1)}" y="14" text-anchor="middle" font-size="13" font-weight="700" ${c("ink")}>a = ${show(A)}</text>`;
+      const arrow = (from, y, col, id, r, ly) => {
+        const xf = X(from).toFixed(1), mid = ((X(from) + X(A)) / 2).toFixed(1);
+        let t = `<line x1="${xf}" y1="${y}" x2="${xf}" y2="${Y}" ${s(col, 1.2)} stroke-dasharray="2 3"/>`;
+        t += r === 0
+          ? `<circle cx="${xa}" cy="${y}" r="5" style="fill:var(--${col})"/>`
+          : `<line x1="${xf}" y1="${y}" x2="${xa}" y2="${y}" ${s(col, 3)} marker-end="url(#${id})"/>`;
+        return t + `<text x="${r === 0 ? xa : mid}" y="${ly}" text-anchor="middle" font-size="13" font-weight="700" ${c(col)}>${r === 0 ? "r = 0" : show(r)}</text>`;
+      };
+      g += arrow(mf, 54, "pen", "ah-py", rf, 46);
+      if (cmp) g += arrow(mt, H - 34, "on2", "ah-tr", rt, H - 14);
+      g += `<circle cx="${xa}" cy="${Y}" r="5.5" ${c("ink")}/>`;
+      stage.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Number line: ${A} % ${N} is ${rf} in Python and ${rt} when rounding toward zero">${g}</svg>`;
+      const exact = +(A / N).toFixed(2);
+      const q = (v, how) => (Number.isInteger(A / N) ? `${A} / ${N} is exactly ${show(v)}` : `${show(exact)} rounded ${how} is ${show(v)}`);
+      out.innerHTML = `<div class="ro py"><b>Python</b><div><code>${A} // ${N} == ${qf}</code> (${q(qf, "down")})<br>`
+        + `<code>${A} % ${N} == ${A} - ${N} * ${paren(qf)} == </code><span class="big">${rf}</span></div></div>`
+        + (cmp ? `<div class="ro tr"><b>C, Java, Go, JS</b><div><code>${A} / ${N} == ${qt}</code> (${q(qt, "toward zero")})<br>`
+          + `<code>${A} % ${N} == ${A} - ${N} * ${paren(qt)} == </code><span class="big">${rt}</span>`
+          + (rf === rt ? `<br>Same answer: ${rf === 0 ? "n divides a exactly" : "a and n have the same sign, so both roundings agree"}.` : "")
+          + `</div></div>` : "");
+    }
+    $$("[data-set]", host).forEach(b => b.addEventListener("click", () => {
+      const [a, n, neg] = b.dataset.set.split(",").map(Number);
+      aIn.value = a; nIn.value = n; negIn.checked = !!neg; sync(); draw();
+    }));
+    onResize(stage, draw);
+  })($("#line"));
+
+  /* 3. The repeating strip */
+  $$(".strip").forEach(el => {
+    const n = +el.dataset.n, xs = [];
+    for (let i = +el.dataset.lo; i <= +el.dataset.hi; i++) xs.push(i);
+    const row = (head, f, cls) => `<tr><th scope="row">${head}</th>${xs.map(i => {
+      const v = f(i); return `<td class="${v < 0 ? "tr" : cls}">${show(v)}</td>`;
+    }).join("")}</tr>`;
+    el.innerHTML = `<table class="seq"><tbody>${row("i", i => i, "")}${row("Python", i => pyMod(i, n), "py")}`
+      + `${row("C, Java, Go, JS", i => truncMod(i, n) || 0, "")}</tbody></table>`;
+  });
+
+  /* 4. Rotation */
+  (host => {
+    const nIn = $("[name=n]", host), kIn = $("[name=k]", host), stage = $(".stage", host), calc = $(".calc", host), out = $(".readout", host);
+    const sync = sliders(host, draw);
+    const list = xs => "[" + xs.map(x => `'${x}'`).join(", ") + "]";
+    const bound = (i, n) => (i < 0 ? Math.max(0, i + n) : Math.min(i, n));    // how Python clamps a slice bound
+    function draw() {
+      const n = +nIn.value, k = +kIn.value, a = "ABCDEFGH".slice(0, n).split("");
+      // An element wraps when it crosses the end of the array on its way: its new index is behind it (right) or ahead of it (left).
+      const dest = a.map((_, i) => pyMod(i + k, n)), wraps = dest.map((j, i) => (k > 0 ? j < i : j > i)), after = Array(n);
+      a.forEach((x, i) => { after[dest[i]] = x; });
+      const W = width(stage), P = 16, slot = (W - 2 * P) / n, size = Math.min(54, slot - 10), cx = i => P + slot * (i + 0.5);
+      const y0 = 30, y1 = 176, H = y1 + size + 26;
+      let g = `<defs>${arrowDef("ah-rot", "ink-3")}${arrowDef("ah-rot-w", "on2")}</defs>`;
+      a.forEach((_, i) => {
+        g += `<line x1="${cx(i).toFixed(1)}" y1="${y0 + size + 3}" x2="${cx(dest[i]).toFixed(1)}" y2="${y1 - 5}" ${s(wraps[i] ? "on2" : "ink-3", wraps[i] ? 2.2 : 1.6)} marker-end="url(#ah-rot${wraps[i] ? "-w" : ""})"/>`;
+      });
+      const cell = (x, i, y, wrap) => `<rect x="${(cx(i) - size / 2).toFixed(1)}" y="${y}" width="${size.toFixed(1)}" height="${size.toFixed(1)}" rx="8" style="fill:var(--sheet);stroke:var(--${wrap ? "on2" : "rule"});stroke-width:${wrap ? 2 : 1.5}"/>`
+        + `<text x="${cx(i).toFixed(1)}" y="${(y + size / 2 + 6).toFixed(1)}" text-anchor="middle" font-size="${Math.min(19, size * 0.5).toFixed(0)}" font-weight="700" ${c(wrap ? "on2" : "ink")}>${x}</text>`;
+      const idx = (i, y) => `<text x="${cx(i).toFixed(1)}" y="${y}" text-anchor="middle" font-size="11.5" ${c("ink-3")}>${i}</text>`;
+      a.forEach((x, i) => { g += cell(x, i, y0, false) + idx(i, y0 - 8); });
+      after.forEach((x, j) => { g += cell(x, j, y1, wraps[a.indexOf(x)]) + idx(j, y1 + size + 18); });
+      stage.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${list(a)} rotated right by ${k} is ${list(after)}">${g}</svg>`;
+      calc.innerHTML = a.map((x, i) => `<span class="${wraps[i] ? "wrap" : ""}">${x}: (${i} + ${paren(k)}) % ${n} = ${dest[i]}</span>`).join("");
+      const st = pyMod(-k, n), b = bound(-k, n), naive = a.slice(b).concat(a.slice(0, b));
+      const naiveOk = naive.join("") === after.join("");
+      out.innerHTML = `<div class="ro ok"><b>Slices</b><div><code>s = -k % n == ${-k || 0} % ${n} == ${st}</code>, then <code>a[${st}:] + a[:${st}]</code><br>`
+        + `<span class="big">${list(after)}</span></div></div>`
+        + `<div class="ro ${naiveOk ? "ok" : "bad"}"><b>Naive slices</b><div><code>a[-k:] + a[:-k]</code> is <code>a[${-k || 0}:] + a[:${-k || 0}]</code>, which gives <code>${list(naive)}</code><br>`
+        + (naiveOk ? "✓ Right this time." : "✗ Wrong: k is outside −n … n, so both slices clamp and nothing moves. Use <code>k % n</code> first.")
+        + `</div></div>`;
+    }
+    $$("[data-set]", host).forEach(b => b.addEventListener("click", () => { kIn.value = b.dataset.set; sync(); draw(); }));
+    onResize(stage, draw);
+  })($("#rotate-w"));
+
+  /* 7. Quiz */
+  (host => {
+    const QS = [
+      ["17 % 5", 2, "17 = 5 × 3 + 2."],
+      ["-17 % 5", 3, "−17 // 5 is −4 (rounded down), and −17 − 5 × (−4) = 3."],
+      ["17 % -5", -3, "The result takes the divisor's sign: 17 // −5 is −4, and 17 − 20 = −3."],
+      ["-17 % -5", -2, "−17 // −5 is 3, and −17 − (−15) = −2."],
+      ["-1 % 7", 6, "One step back from slot 0 on a ring of 7 is the last slot."],
+      ["3 % 10", 3, "When 0 ≤ a < n, a % n is just a."],
+      ["-123 % 10", 7, "Not 3: −123 = 10 × (−13) + 7. Use abs() when you want digits."],
+      ["-7 // 2", -4, "// rounds down: −3.5 becomes −4, not −3."],
+      ["-5.5 % 2", 0.5, "Floats follow the same rule: −5.5 − 2 × (−3) = 0.5."],
+      ["(0 - 4) % 6", 2, "Four steps back from index 0 in a list of 6 lands on index 2."],
+    ];
+    const box = $(".quiz", host), score = $(".score", host), done = new Map();
+    box.innerHTML = QS.map(([e], i) => `<div class="q" data-i="${i}"><code class="expr">${e}</code>`
+      + `<form><input aria-label="Your answer for ${e}" autocomplete="off" spellcheck="false" placeholder="?"><button class="btn">Check</button></form>`
+      + `<div class="fb" aria-live="polite"></div><button type="button" class="show">Show answer</button></div>`).join("");
+    const tally = () => { score.textContent = done.size ? `${[...done.values()].filter(Boolean).length} of ${QS.length} right first time` : ""; };
+    $$(".q", box).forEach(q => {
+      const [, ans, why] = QS[+q.dataset.i], inp = $("input", q), fb = $(".fb", q);
+      const tell = (ok, revealed) => {
+        q.classList.toggle("right", ok); q.classList.toggle("wrong", !ok && !revealed);
+        fb.innerHTML = `${revealed ? "Answer" : ok ? "Right" : "Not quite"}: <b>${show(ans)}</b>. ${why}`;
+        $(".show", q).hidden = true;
+      };
+      $("form", q).addEventListener("submit", ev => {
+        ev.preventDefault();
+        const raw = inp.value.trim().replace(/[−–]/g, "-");
+        if (!raw) return;
+        const ok = Number(raw) === ans;
+        if (!done.has(q.dataset.i)) done.set(q.dataset.i, ok);
+        tell(ok, false); tally();
+      });
+      $(".show", q).addEventListener("click", () => {
+        if (!done.has(q.dataset.i)) done.set(q.dataset.i, false);
+        tell(false, true); tally();
+      });
+    });
+  })($("#quiz-w"));
+
+  if (window.hljs) $$("pre code").forEach(el => hljs.highlightElement(el));
+})();
+</script>

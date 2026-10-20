@@ -11,6 +11,8 @@ Output:
     <track>/<lang>/workbook.html       exercises with ticks (saved in the browser)
     <track>/<lang>/answer-key.html     reference solutions, blurred until revealed
     dsa/guide/index.html               the concept guide
+    blog/index.html                    the blog: one card per post in POSTS
+    blog/<slug>/index.html             a post, from kit/blog/<slug>.html
 """
 import argparse
 import html
@@ -101,6 +103,7 @@ def site_bar(depth, current="", wide=False):
             + item("guide", "dsa/guide/", "Guide")
             + item("cp", "cp/", '<span class="long">Competitive programming</span><span class="short">CP</span>')
             + item("lab", "lab/", "Lab")
+            + item("blog", "blog/", "Blog")
             + f'<a class="gh" href="{GITHUB}" aria-label="BloomCode on GitHub" title="BloomCode on GitHub">{GITHUB_ICON}</a>'
             + "</nav></header>\n")
 
@@ -265,6 +268,42 @@ def lab_page(python_data):
     return shell("Lab · BloomCode", "Jupyter notebooks for the BloomCode Python tracks, one per chapter, with tests and solutions.", body, 1, "lab")
 
 
+POSTS = (  # newest first: (slug, title, date, minutes to read, tags, summary); the body is kit/blog/<slug>.html
+    ("python-modulo", "Python's % operator: negative numbers, wrap-around and rotating arrays", "2026-10-20", 12,
+     ("Python", "Arrays", "Fundamentals"),
+     "Why -7 % 3 is 2 in Python but -1 in Java, Go and JavaScript, and how that one rule makes (i + k) % n rotate "
+     "arrays and wrap indexes in both directions. With a ring you can walk, a number line, an array rotator and a quiz."),
+)
+
+
+def post_date(iso):
+    y, m, d = (int(x) for x in iso.split("-"))
+    return f"{d} {('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')[m - 1]} {y}"
+
+
+def blog_index_page():
+    cards = "".join(
+        f'<a class="panel post-card" href="{slug}/"><span class="eyebrow">{post_date(date)} · {mins} min read</span>'
+        f"<h2>{html.escape(title)}</h2><p>{html.escape(summary)}</p>"
+        f'<span class="tags">{"".join(f"<span>{html.escape(tag)}</span>" for tag in tags)}</span></a>'
+        for slug, title, date, mins, tags, summary in POSTS)
+    body = ('<section class="panel hero-site"><span class="eyebrow">Blog</span><h1>Ideas, <em>up close.</em></h1>'
+            "<p>Longer explanations of the small things that trip people up, with pictures you can play with.</p></section>"
+            f'<div class="posts">{cards}</div>')
+    frag = (f"<title>Blog · BloomCode</title>\n{FONTS}<style>\n{BASE}\n{SHELL_CSS}\n{read('blog/blog.css')}\n</style>\n"
+            + site_bar(1, "blog") + f'<main class="site">{body}</main>')
+    return document(frag, "Longer explanations of programming ideas, with interactive pictures.")
+
+
+def blog_post_page(slug, title, date, mins, tags, summary):
+    head = (f'<header class="post-head"><span class="eyebrow"><a href="../">Blog</a> · {" · ".join(html.escape(t) for t in tags)}</span>'
+            f"<h1>{html.escape(title)}</h1><p class=\"dek\">{html.escape(summary)}</p>"
+            f'<div class="post-meta"><time datetime="{date}">{post_date(date)}</time><span>{mins} min read</span></div></header>')
+    frag = (f"<title>{html.escape(title)} · BloomCode</title>\n{FONTS}<style>\n{BASE}\n{read('blog/blog.css')}\n</style>\n"
+            + site_bar(2, "blog") + f'<div class="post-wrap"><article class="panel post">{head}{read(f"blog/{slug}.html")}</article></div>')
+    return document(frag, summary)
+
+
 def lang_card(t, lang, counts):
     links = [f'<a class="primary" href="{lang}/workbook.html">Workbook</a>', f'<a href="{lang}/answer-key.html">Answer key</a>',
              f'<a href="https://github.com/bloomcode/{t}-{lang}">Starter repo</a>']
@@ -395,6 +434,10 @@ def main():
     (out / "index.html").write_text(home_page(counts, dsa_track, ids))
     (out / "lab").mkdir(exist_ok=True)
     (out / "lab/index.html").write_text(lab_page(python_data))
+    for post in POSTS:
+        (out / "blog" / post[0]).mkdir(parents=True, exist_ok=True)
+        (out / "blog" / post[0] / "index.html").write_text(blog_post_page(*post))
+    (out / "blog/index.html").write_text(blog_index_page())
     (out / "404.html").write_text(shell("Not found · BloomCode", "", '<section class="panel hero-site"><h1>Not <em>found</em></h1>'
                                         '<p>That page does not exist. Start from the <a href="/">home page</a>.</p></section>', 0))
     (out / ".nojekyll").write_text("")
