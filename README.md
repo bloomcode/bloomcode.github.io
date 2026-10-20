@@ -33,4 +33,5 @@ kit/buildlib.py        parses exercise markers (Python, Java, Go)
 kit/render_check.py    browser check at 1280 px light and 390 px dark
 kit/web/               base.css, common.js, workbook and answer-key templates per track
 kit/guide/             the concept guide: template, styles, visualizers, chapter content
+kit/blog/              the blog: shared styles and one HTML body per post (listed in POSTS in build.py)
 ```
